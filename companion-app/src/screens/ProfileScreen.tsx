@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Moon, Shield, GitBranch, Smartphone } from 'lucide-react';
+import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Shield, GitBranch, Smartphone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { ThemeToggle } from '../components/ThemeToggle';
 import type { RideLog } from '../types';
 
 function formatDuration(ms: number): string {
@@ -122,7 +123,7 @@ export const ProfileScreen: React.FC = () => {
       <div style={{ padding: '0 16px', marginBottom: 20 }}>
         <div className="form-section-label" style={{ marginBottom: 12 }}>App Settings</div>
 
-        <div className="settings-card glass-panel">
+        <div className="settings-card card">
           {/* SOS Duration */}
           <div className="settings-row">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -168,22 +169,15 @@ export const ProfileScreen: React.FC = () => {
 
           <div className="settings-divider" />
 
-          {/* AMOLED Mode */}
+
+          {/* Theme */}
+          <div className="settings-divider" />
           <div className="settings-row">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Moon size={18} color="var(--text-secondary)" />
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>AMOLED Mode</div>
-                <div style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Pure black for OLED screens</div>
-              </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '14px' }}>Appearance</div>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Light · System · Dark</div>
             </div>
-            <button
-              id="btn-toggle-amoled"
-              className={`toggle-switch${settings.amoledMode ? ' toggle-switch--on' : ''}`}
-              onClick={() => updateSettings({ amoledMode: !settings.amoledMode })}
-            >
-              <div className="toggle-knob" />
-            </button>
+            <ThemeToggle compact />
           </div>
         </div>
       </div>
@@ -191,7 +185,7 @@ export const ProfileScreen: React.FC = () => {
       {/* About */}
       <div style={{ padding: '0 16px', marginBottom: 16 }}>
         <div className="form-section-label" style={{ marginBottom: 12 }}>About</div>
-        <div className="settings-card glass-panel">
+        <div className="settings-card card">
           <div className="settings-row">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Smartphone size={18} color="var(--text-secondary)" />
@@ -214,8 +208,8 @@ export const ProfileScreen: React.FC = () => {
       <div style={{ padding: '0 16px 100px' }}>
         <button
           id="btn-logout"
-          className={`btn ${confirmLogout ? 'btn-danger' : ''}`}
-          style={{ width: '100%', background: confirmLogout ? undefined : 'var(--bg-secondary)', color: 'white' }}
+          className={`btn ${confirmLogout ? 'btn-danger' : 'btn-logout'}`}
+          style={{ width: '100%' }}
           onClick={handleLogout}
         >
           <LogOut size={16} style={{ marginRight: 8 }} />

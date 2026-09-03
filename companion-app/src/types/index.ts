@@ -39,4 +39,6 @@ export interface AppSettings {
   sosDuration: 10 | 30 | 60;
   soundAlerts: boolean;
   amoledMode: boolean;
+  theme: 'light' | 'dark' | 'system';
 }
+

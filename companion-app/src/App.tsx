@@ -17,7 +17,11 @@ function AppShell() {
   const { route, user, settings } = useApp();
 
   if (!user || route === 'auth') {
-    return <AuthScreen />;
+    return (
+      <div className="auth-shell">
+        <AuthScreen />
+      </div>
+    );
   }
 
   const Screen = SCREENS[route as keyof typeof SCREENS] ?? DashboardScreen;
@@ -31,6 +35,7 @@ function AppShell() {
     </div>
   );
 }
+
 
 export default function App() {
   return (

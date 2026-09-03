@@ -36,7 +36,7 @@ export const GarageScreen: React.FC = () => {
       </header>
 
       {/* Bike Avatar Card */}
-      <div className="glass-panel bike-avatar-card" style={{ margin: '0 16px 20px' }}>
+      <div className="card bike-avatar-card" style={{ margin: '0 16px 20px' }}>
         <div className="bike-avatar-ring">
           <Bike size={42} color="var(--accent-red)" />
         </div>
@@ -135,7 +135,7 @@ export const GarageScreen: React.FC = () => {
       </form>
 
       {/* Device Info Card */}
-      <div className="glass-panel" style={{ margin: '20px 16px 90px', padding: '16px' }}>
+      <div className="card" style={{ margin: '20px 16px 90px', padding: '16px' }}>
         <div className="form-section-label" style={{ marginBottom: 12 }}>Device Info</div>
         <div className="device-info-row">
           <Cpu size={16} color="var(--accent-blue)" />

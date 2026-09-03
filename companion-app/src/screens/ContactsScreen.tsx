@@ -67,7 +67,7 @@ export const ContactsScreen: React.FC = () => {
 
       {/* Add Contact Form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="glass-panel form-card" style={{ margin: '0 16px 16px' }}>
+        <form onSubmit={handleAdd} className="card form-card" style={{ margin: '0 16px 16px' }}>
           <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: 12 }}>New Contact</h3>
 
           <div className="form-field">
@@ -118,7 +118,7 @@ export const ContactsScreen: React.FC = () => {
           </div>
         ) : (
           contacts.map((c, i) => (
-            <div key={c.id} className="contact-card glass-panel" style={{ animationDelay: `${i * 60}ms` }}>
+            <div key={c.id} className="contact-card card" style={{ animationDelay: `${i * 60}ms` }}>
               <div className="contact-avatar" style={{ background: relationColor[c.relation] + '22', border: `1px solid ${relationColor[c.relation]}55` }}>
                 <span style={{ color: relationColor[c.relation] }}>{relationIcon[c.relation]}</span>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: relationColor[c.relation] }}>{i + 1}</span>

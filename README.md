@@ -58,13 +58,15 @@ App (Auth Gate)
 
 ### Key Features
 
-| Screen | Features |
+| Screen / Feature | Details |
 | :--- | :--- |
-| **Auth** | Google Sign-In via Firebase, Email/Password, graceful error handling |
-| **Dashboard** | Live G-force, speed, pitch, roll · Safety score · Live Leaflet.js map · BLE connect button · Ride session tracking · Emergency HUD with 30s SOS countdown |
-| **Contacts** | Up to 5 emergency contacts · Family/Friend/Doctor/Other tags · Sync to ESP32 over BLE |
-| **Garage** | Custom bike nickname · Make, model, year, reg number, engine CC, color · DL copy upload · Device firmware info |
-| **Profile** | Ride history with max G-force, distance, events · SOS timer (10s/30s/60s) · Sound alerts toggle · AMOLED mode · GitHub link |
+| **Auth** | Google Sign-In via Firebase, Email/Password, top-bar theme cycle toggle, custom helmet branding |
+| **Dashboard** | Live G-force, speed, pitch, roll · Safety score · Live Leaflet.js map · BLE connect · Ride session tracking · Interactive hardware simulator (Crash / Pothole / Braking) |
+| **Emergency Mode** | Edge-to-edge takeover HUD · Web Audio API acoustic alarm · Circular countdown timer · High-visibility "I'M OK" cancel button · Post-dispatch status confirmation |
+| **Contacts** | Up to 5 emergency contacts · Family/Friend/Doctor/Other tags · Sync to ESP32 over BLE with live status feedback |
+| **Garage** | Custom bike nickname · Make, model, year, reg number, engine CC, color · DL copy upload · Real-time BLE & firmware status |
+| **Profile** | Lifetime ride stats (rides count, km, max G) · Ride history log · Configurable SOS timer (10s/30s/60s) · Sound alerts · Multi-theme appearance (Light / Dark / System Default) |
+| **Design System** | Apple-inspired minimal aesthetic · Zinc/Slate monochrome palette · Responsive 390px phone-ratio shell with subtle desktop framing |
 
 ### Setup Instructions
 

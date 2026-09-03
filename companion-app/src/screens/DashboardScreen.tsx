@@ -101,22 +101,25 @@ export const DashboardScreen: React.FC = () => {
     : systemState === 'CRASH_CONFIRMED' ? 'CRASH CONFIRMED — ALERTING'
     : 'SOS SENT';
 
+  if (isEmergency) {
+    return (
+      <EmergencyHUD
+        countdown={countdown}
+        onCancel={cancelAlert}
+        isConfirmed={systemState === 'CRASH_CONFIRMED'}
+        isSent={systemState === 'SOS_SENT'}
+      />
+    );
+  }
+
   return (
     <div className="screen">
-      {/* Dynamic background */}
-      <div className="dashboard-bg" style={{
-        background: systemState === 'NORMAL'
-          ? 'radial-gradient(circle at top right, #1a1a1c, #000)'
-          : systemState === 'POTHOLE'
-          ? 'radial-gradient(circle at top right, #3d2300, #000)'
-          : 'radial-gradient(circle at top right, #3d0000, #000)',
-        transition: 'background 1s ease',
-      }} />
+
 
       {/* Header */}
       <header className="screen-header">
         <div>
-          <h2 className="brand-title text-gradient">RIDE CTRL</h2>
+          <h2 className="brand-title">RIDE CTRL</h2>
           <p className="text-secondary" style={{ fontSize: '13px' }}>
             Welcome back, {user?.name?.split(' ')[0] ?? 'Rider'}
           </p>
@@ -177,7 +180,7 @@ export const DashboardScreen: React.FC = () => {
       </div>
 
       {/* Safety Score */}
-      <div className="glass-panel" style={{ margin: '0 16px', padding: '16px' }}>
+      <div className="card" style={{ margin: '0 16px', padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '1px' }}>SAFETY SCORE</span>
           <span style={{ fontSize: '24px', fontWeight: 700, color: safetyScore > 70 ? 'var(--accent-green)' : safetyScore > 40 ? 'var(--accent-orange)' : 'var(--accent-red)' }}>
@@ -193,7 +196,7 @@ export const DashboardScreen: React.FC = () => {
       </div>
 
       {/* Live Map */}
-      <div className="glass-panel map-widget" style={{ margin: '16px 16px 0' }}>
+      <div className="card map-widget" style={{ margin: '16px 16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px 8px' }}>
           <MapPin size={16} color="var(--accent-blue)" />
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '1px' }}>LIVE LOCATION</span>
@@ -201,8 +204,8 @@ export const DashboardScreen: React.FC = () => {
         <div style={{ height: 180, borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
           <MapContainer center={[location.lat, location.lng]} zoom={14} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; OpenStreetMap contributors &copy; CARTO'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; OpenStreetMap contributors'
             />
             <Marker position={[location.lat, location.lng]}>
               <Popup>Your Location</Popup>
@@ -212,7 +215,7 @@ export const DashboardScreen: React.FC = () => {
       </div>
 
       {/* Hardware Simulator (collapsible) */}
-      <div className="glass-panel" style={{ margin: '16px 16px 90px' }}>
+      <div className="card" style={{ margin: '16px 16px 16px' }}>
         <button
           id="btn-toggle-simulator"
           className="sim-toggle"
@@ -224,23 +227,13 @@ export const DashboardScreen: React.FC = () => {
         {simOpen && (
           <div style={{ padding: '0 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <button id="btn-sim-pothole" className="btn" style={{ background: 'var(--accent-orange)', color: 'white', fontSize: 13 }} onClick={triggerPothole}>Pothole</button>
-            <button id="btn-sim-braking" className="btn" style={{ background: 'var(--bg-tertiary)', color: 'white', fontSize: 13 }} onClick={triggerBraking}>Hard Braking</button>
+            <button id="btn-sim-braking" className="btn btn-secondary" style={{ fontSize: 13 }} onClick={triggerBraking}>Hard Braking</button>
             <button id="btn-sim-crash" className="btn btn-danger" style={{ gridColumn: '1 / -1', fontSize: 13 }} onClick={() => { triggerCrash(); if (rideActive) setRideEvents(e => [...e, 'Crash Triggered']); }}>
               Simulate Crash (Trigger SOS)
             </button>
           </div>
         )}
       </div>
-
-      {/* Emergency Overlay */}
-      {isEmergency && (
-        <EmergencyHUD
-          countdown={countdown}
-          onCancel={cancelAlert}
-          isConfirmed={systemState === 'CRASH_CONFIRMED'}
-          isSent={systemState === 'SOS_SENT'}
-        />
-      )}
     </div>
   );
 };

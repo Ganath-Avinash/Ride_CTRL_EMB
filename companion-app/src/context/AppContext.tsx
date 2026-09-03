@@ -48,6 +48,7 @@ const defaultSettings: AppSettings = {
   sosDuration: 30,
   soundAlerts: true,
   amoledMode: false,
+  theme: 'system',
 };
 
 const AppCtx = createContext<AppContextType | null>(null);
@@ -83,6 +84,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (user) setRoute('dashboard');
     else setRoute('auth');
   }, [user]);
+
+  // Apply theme to document root
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme === 'system') {
+      root.removeAttribute('data-theme');
+    } else {
+      root.setAttribute('data-theme', settings.theme);
+    }
+  }, [settings.theme]);
 
   const setUser = useCallback((u: AppUser | null) => {
     setUserState(u);
