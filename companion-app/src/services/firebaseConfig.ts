@@ -1,28 +1,22 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAnalytics } from 'firebase/analytics';
 
-// ============================================================
-// IMPORTANT: Replace these placeholder values with your
-// actual Firebase project config.
-// Steps:
-//  1. Go to https://console.firebase.google.com
-//  2. Create a project (or open existing)
-//  3. Add a Web app
-//  4. Enable Google Sign-In under Authentication > Sign-in method
-//  5. Paste your config object here
-// ============================================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyDGvpQ2fRvl2XIOQEk3paSaQtn0IUbwXZ0",
+  authDomain: "ride-ctrl.firebaseapp.com",
+  projectId: "ride-ctrl",
+  storageBucket: "ride-ctrl.firebasestorage.app",
+  messagingSenderId: "990687140657",
+  appId: "1:990687140657:web:86206c25baab1c2a792e10",
+  measurementId: "G-M9D3BX20HY",
 };
 
-export const isFirebaseConfigured =
-  firebaseConfig.apiKey !== 'YOUR_API_KEY';
-
-export const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
-export const auth = isFirebaseConfigured ? getAuth(app!) : null;
+// Single initialization
+export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const analytics = getAnalytics(app);
+
+// Always true now that the config is real
+export const isFirebaseConfigured = true;

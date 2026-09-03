@@ -4,6 +4,7 @@
 ![Hardware](https://img.shields.io/badge/Hardware-ESP32-blue?style=for-the-badge)
 ![App](https://img.shields.io/badge/Companion_App-React_|_Vite-61DAFB?style=for-the-badge)
 ![ML](https://img.shields.io/badge/Machine_Learning-TinyML_|_Edge_Impulse-green?style=for-the-badge)
+![Auth](https://img.shields.io/badge/Auth-Firebase_Google_OAuth-orange?style=for-the-badge)
 
 Ride CTRL is an embedded post-crash detection and emergency response system designed for two-wheelers. Utilizing an ESP32 microcontroller, TinyML, and various hardware modules, the system intelligently detects crashes, provides localized audio alerts, and automatically notifies emergency contacts with GPS coordinates if the rider is incapacitated.
 
@@ -12,8 +13,8 @@ Ride CTRL is an embedded post-crash detection and emergency response system desi
 - **Intelligent Crash Detection**: Uses a 6-axis IMU (MPU6050) combined with a TinyML model (trained via Edge Impulse) to distinguish between actual crashes and normal riding events (e.g., potholes, hard braking).
 - **Voice Prompts**: Integrates a DFPlayer Mini to play clear audio instructions (e.g., "Impact detected. Alerting emergency contacts in 30 seconds").
 - **Automated Emergency SMS**: Uses a GSM module (SIM800L) to send an SOS message containing live GPS coordinates (via U-blox NEO-6M) to pre-configured contacts.
-- **Cancellation Mechanism**: Riders have a 30-second window to cancel the alert via a physical tactile button or the Companion App if they are unharmed.
-- **Companion App**: A modern React + Vite frontend that pairs with the ESP32 via BLE. It allows users to configure emergency contacts, view system status, and acts as a secondary cancellation interface.
+- **Cancellation Mechanism**: Riders have a configurable window (10s / 30s / 60s) to cancel the alert via a physical tactile button or the Companion App if they are unharmed.
+- **Companion App**: A full-featured React + Vite frontend that pairs with the ESP32 via BLE. Supports user auth, vehicle profiles, emergency contacts, ride history, and live telemetry.
 - **Power Efficient**: Leverages the ESP32's Deep Sleep mode, waking up only upon receiving a hardware interrupt from the IMU during a high-G event.
 
 ## Hardware Specifications
@@ -40,7 +41,30 @@ The system is built using the following validated components:
 
 ## Companion App
 
-The Companion App is built using **React**, **TypeScript**, and **Vite**. It communicates with the ESP32 hardware via Bluetooth Low Energy (BLE).
+The Companion App is a full-featured smartphone interface built with **React**, **TypeScript**, and **Vite**. It communicates with the ESP32 hardware via **Web Bluetooth API (BLE)** and authenticates users via **Firebase Google OAuth**.
+
+### App Architecture
+
+```
+App (Auth Gate)
+├── Auth Screen           — Google Sign-In, Email/Password Sign-Up
+└── [Protected] Main App
+    ├── Bottom Navigation — Dashboard | Contacts | Garage | Profile
+    ├── Dashboard         — Live telemetry, BLE status, safety score, live map, ride session
+    ├── Contacts          — Add/delete emergency contacts, sync to ESP32 over BLE
+    ├── Garage            — Vehicle profile (make/model/year/reg/CC), DL upload, device info
+    └── Profile           — User info, ride history, SOS duration, sound settings, logout
+```
+
+### Key Features
+
+| Screen | Features |
+| :--- | :--- |
+| **Auth** | Google Sign-In via Firebase, Email/Password, graceful error handling |
+| **Dashboard** | Live G-force, speed, pitch, roll · Safety score · Live Leaflet.js map · BLE connect button · Ride session tracking · Emergency HUD with 30s SOS countdown |
+| **Contacts** | Up to 5 emergency contacts · Family/Friend/Doctor/Other tags · Sync to ESP32 over BLE |
+| **Garage** | Custom bike nickname · Make, model, year, reg number, engine CC, color · DL copy upload · Device firmware info |
+| **Profile** | Ride history with max G-force, distance, events · SOS timer (10s/30s/60s) · Sound alerts toggle · AMOLED mode · GitHub link |
 
 ### Setup Instructions
 
@@ -48,23 +72,40 @@ The Companion App is built using **React**, **TypeScript**, and **Vite**. It com
    ```bash
    cd companion-app
    ```
+
 2. Install dependencies:
    ```bash
    npm install
    ```
-3. Run the development server:
+
+3. **Configure Firebase** — Open `src/services/firebaseConfig.ts` and replace the placeholder values with your Firebase project config:
+   ```typescript
+   const firebaseConfig = {
+     apiKey: "YOUR_API_KEY",
+     authDomain: "YOUR_PROJECT.firebaseapp.com",
+     // ...
+   };
+   ```
+   > Get your config from: [Firebase Console](https://console.firebase.google.com) > Project Settings > Your apps > Web app.
+   > Enable **Google** as a Sign-In provider under Authentication > Sign-in method.
+
+4. Run the development server:
    ```bash
    npm run dev
    ```
 
-### App Features
-- **Dashboard**: Displays real-time mock telemetry and safety scores.
-- **Settings**: Interface to save up to 3 emergency contact numbers (syncs to ESP32 EEPROM).
-- **Pairing Screen**: Simple UI to connect the app to the helmet/bike hardware.
+### BLE Connection (Web Bluetooth)
+
+The app uses the **Web Bluetooth API** to connect to the ESP32.
+
+- Supported on Chrome and Edge (desktop & Android).
+- The ESP32 must advertise itself as `RIDE_CTRL`.
+- BLE Service/Characteristic UUIDs are defined in `src/services/bleService.ts` — update these to match your ESP32 firmware.
+- If BLE is not supported by the browser, the app falls back gracefully to a simulated mode.
 
 ## Machine Learning Pipeline
 
-The project uses **Edge Impulse** for TinyML model generation. 
+The project uses **Edge Impulse** for TinyML model generation.
 1. **Data Acquisition**: Time-series accelerometer data is collected and uploaded.
 2. **Spectral Analysis**: Extracts peak frequencies and energy from the raw data.
 3. **Classification**: A Neural Network or Random Forest classifies the data into normal riding vs. crash events.
