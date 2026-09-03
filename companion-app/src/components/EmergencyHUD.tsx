@@ -8,8 +8,9 @@ interface EmergencyHUDProps {
   isSent: boolean;
 }
 
-export const EmergencyHUD: React.FC<EmergencyHUDProps> = ({ countdown, onCancel, isConfirmed, isSent }) => {
+export const EmergencyHUD: React.FC<EmergencyHUDProps> = ({ countdown, onCancel, isSent }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  void audioRef; // retained for future audio feature
 
   useEffect(() => {
     // Play a generic beep sound (using a data URI or external URL for demo)
