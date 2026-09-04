@@ -119,7 +119,7 @@ export const DashboardScreen: React.FC = () => {
       {/* Header */}
       <header className="screen-header">
         <div>
-          <h2 className="brand-title">RIDE CTRL</h2>
+          <h2 className="brand-title">SentryX</h2>
           <p className="text-secondary" style={{ fontSize: '13px' }}>
             Welcome back, {user?.name?.split(' ')[0] ?? 'Rider'}
           </p>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Shield, GitBranch, Smartphone } from 'lucide-react';
+import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Shield, GitBranch, Smartphone, HelpCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ThemeToggle } from '../components/ThemeToggle';
+import Stepper, { Step } from '../components/Stepper';
 import type { RideLog } from '../types';
 
 function formatDuration(ms: number): string {
@@ -23,6 +24,7 @@ const gColor = (g: number) => g > 3 ? 'var(--accent-red)' : g > 2 ? 'var(--accen
 export const ProfileScreen: React.FC = () => {
   const { user, setUser, settings, updateSettings, rideLogs, vehicle } = useApp();
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   const handleLogout = () => {
     if (!confirmLogout) { setConfirmLogout(true); setTimeout(() => setConfirmLogout(false), 3000); return; }
@@ -186,6 +188,14 @@ export const ProfileScreen: React.FC = () => {
       <div style={{ padding: '0 16px', marginBottom: 16 }}>
         <div className="form-section-label" style={{ marginBottom: 12 }}>About</div>
         <div className="settings-card card">
+          <div className="settings-row" onClick={() => setShowTour(true)} style={{ cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <HelpCircle size={18} color="var(--text-secondary)" />
+              <span style={{ fontWeight: 600, fontSize: '14px' }}>What SentryX Does</span>
+            </div>
+            <ChevronRight size={16} style={{ opacity: 0.4 }} />
+          </div>
+          <div className="settings-divider" />
           <div className="settings-row">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Smartphone size={18} color="var(--text-secondary)" />
@@ -203,6 +213,43 @@ export const ProfileScreen: React.FC = () => {
           </a>
         </div>
       </div>
+
+      {/* Stepper Tour Modal */}
+      {showTour && (
+        <div className="stepper-modal-overlay" onClick={() => setShowTour(false)}>
+          <div className="stepper-modal-wrapper" onClick={e => e.stopPropagation()}>
+            <Stepper
+              title="What SentryX Does"
+              onClose={() => setShowTour(false)}
+              initialStep={1}
+              onFinalStepCompleted={() => setShowTour(false)}
+              backButtonText="Previous"
+              nextButtonText="Next"
+            >
+              <Step>
+                <div className="stepper-card-feature-badge">Step 1 · Crash Detection</div>
+                <h2>Intelligent Crash AI</h2>
+                <p>6-Axis IMU sensors pair with an on-device TinyML machine learning model on the ESP32 to instantly classify real crashes from potholes or hard braking.</p>
+              </Step>
+              <Step>
+                <div className="stepper-card-feature-badge">Step 2 · Alerts</div>
+                <h2>Prompts & Grace Period</h2>
+                <p>DFPlayer Mini triggers immediate localized audio alerts with a 10s–60s countdown, giving unharmed riders time to cancel before alerting emergency services.</p>
+              </Step>
+              <Step>
+                <div className="stepper-card-feature-badge">Step 3 · Emergency SOS</div>
+                <h2>Automated GSM & GPS SOS</h2>
+                <p>If unresponsive, SIM800L sends urgent SOS SMS messages with live GPS map coordinates to pre-configured family and emergency contacts.</p>
+              </Step>
+              <Step>
+                <div className="stepper-card-feature-badge">Step 4 · Telemetry Sync</div>
+                <h2>Live Telemetry & Cloud Sync</h2>
+                <p>Pairs seamlessly with this companion app over low-latency Bluetooth BLE for live G-Force tracking, trip analytics, and garage vehicle health.</p>
+              </Step>
+            </Stepper>
+          </div>
+        </div>
+      )}
 
       {/* Logout */}
       <div style={{ padding: '0 16px 100px' }}>

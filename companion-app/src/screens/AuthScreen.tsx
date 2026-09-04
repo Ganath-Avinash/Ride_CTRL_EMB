@@ -4,6 +4,7 @@ import { auth, googleProvider, isFirebaseConfigured } from '../services/firebase
 import { useApp } from '../context/AppContext';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Mail, Lock, User, AlertTriangle } from 'lucide-react';
+import Stepper, { Step } from '../components/Stepper';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -20,6 +21,7 @@ const GoogleG = () => (
 export const AuthScreen: React.FC = () => {
   const { setUser } = useApp();
   const [mode, setMode] = useState<AuthMode>('signin');
+  const [showTour, setShowTour] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,17 +83,18 @@ export const AuthScreen: React.FC = () => {
   return (
     <div className="auth-screen">
       <div className="auth-top-bar">
+        <div className="auth-logo-icon">
+          <img src="/imgs/helmey.png" alt="SentryX Helmet" />
+        </div>
         <ThemeToggle compact />
       </div>
 
       <div className="auth-content">
         {/* Logo / Branding */}
         <div className="auth-logo">
-          <div className="auth-logo-icon">
-            <img src="/imgs/helmey.png" alt="RIDE CTRL Helmet" />
-          </div>
-          <h1 className="auth-title">RIDE CTRL</h1>
+          <h1 className="auth-title">SentryX</h1>
           <p className="auth-subtitle">Two-Wheeler Safety System</p>
+          <p className="auth-tagline">Detect. Alert. Respond.</p>
         </div>
 
         {/* Firebase not configured warning */}
@@ -117,7 +120,7 @@ export const AuthScreen: React.FC = () => {
           <div className="auth-divider"><span>or</span></div>
 
           {/* Email/Password form */}
-          <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {mode === 'signup' && (
               <div className="form-field">
                 <User size={16} className="form-field-icon" />
@@ -172,7 +175,7 @@ export const AuthScreen: React.FC = () => {
               className="btn btn-primary"
               type="submit"
               disabled={loading}
-              style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-md)', fontSize: '15px', marginTop: 2 }}
+              style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-md)', fontSize: '15px', marginTop: 4 }}
             >
               {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
             </button>
@@ -188,8 +191,52 @@ export const AuthScreen: React.FC = () => {
               {mode === 'signin' ? 'Sign Up' : 'Sign In'}
             </button>
           </p>
+
+          <button
+            type="button"
+            className="btn-tour-pill"
+            onClick={() => setShowTour(true)}
+          >
+            What SentryX Does
+          </button>
         </div>
       </div>
+
+      {showTour && (
+        <div className="stepper-modal-overlay" onClick={() => setShowTour(false)}>
+          <div className="stepper-modal-wrapper" onClick={e => e.stopPropagation()}>
+            <Stepper
+              title="What SentryX Does"
+              onClose={() => setShowTour(false)}
+              initialStep={1}
+              onFinalStepCompleted={() => setShowTour(false)}
+              backButtonText="Previous"
+              nextButtonText="Next"
+            >
+              <Step>
+                <div className="stepper-card-feature-badge">Step 1 · Crash Detection</div>
+                <h2>Intelligent Crash AI</h2>
+                <p>6-Axis IMU sensors pair with an on-device TinyML machine learning model on the ESP32 to instantly classify real crashes from potholes or hard braking.</p>
+              </Step>
+              <Step>
+                <div className="stepper-card-feature-badge">Step 2 · Alerts</div>
+                <h2>Prompts & Grace Period</h2>
+                <p>DFPlayer Mini triggers immediate localized audio alerts with a 10s–60s countdown, giving unharmed riders time to cancel before alerting emergency services.</p>
+              </Step>
+              <Step>
+                <div className="stepper-card-feature-badge">Step 3 · Emergency SOS</div>
+                <h2>Automated GSM & GPS SOS</h2>
+                <p>If unresponsive, SIM800L sends urgent SOS SMS messages with live GPS map coordinates to pre-configured family and emergency contacts.</p>
+              </Step>
+              <Step>
+                <div className="stepper-card-feature-badge">Step 4 · Telemetry Sync</div>
+                <h2>Live Telemetry & Cloud Sync</h2>
+                <p>Pairs seamlessly with this companion app over low-latency Bluetooth BLE for live G-Force tracking, trip analytics, and garage vehicle health.</p>
+              </Step>
+            </Stepper>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -140,7 +140,7 @@ export const GarageScreen: React.FC = () => {
         <div className="device-info-row">
           <Cpu size={16} color="var(--accent-blue)" />
           <span style={{ color: 'var(--text-secondary)' }}>Device</span>
-          <span style={{ marginLeft: 'auto', fontWeight: 600 }}>RIDE CTRL v1.0</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 600 }}>SentryX v1.0</span>
         </div>
         <div className="device-info-row">
           <Wifi size={16} color={bleStatus === 'connected' ? 'var(--accent-green)' : 'var(--text-tertiary)'} />

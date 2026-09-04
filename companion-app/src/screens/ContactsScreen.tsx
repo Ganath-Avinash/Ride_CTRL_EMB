@@ -161,7 +161,7 @@ export const ContactsScreen: React.FC = () => {
           </button>
           {bleStatus === 'disconnected' && (
             <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-tertiary)', marginTop: 8 }}>
-              Connect to RIDE CTRL device via Dashboard to sync
+              Connect to SentryX device via Dashboard to sync
             </p>
           )}
         </div>

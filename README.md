@@ -1,4 +1,4 @@
-# Ride CTRL: Two-Wheeler Post-Crash Detection System
+# SentryX: Two-Wheeler Post-Crash Detection System
 
 ![Project Banner](https://img.shields.io/badge/Status-In%20Development-yellow?style=for-the-badge)
 ![Hardware](https://img.shields.io/badge/Hardware-ESP32-blue?style=for-the-badge)
@@ -6,7 +6,7 @@
 ![ML](https://img.shields.io/badge/Machine_Learning-TinyML_|_Edge_Impulse-green?style=for-the-badge)
 ![Auth](https://img.shields.io/badge/Auth-Firebase_Google_OAuth-orange?style=for-the-badge)
 
-Ride CTRL is an embedded post-crash detection and emergency response system designed for two-wheelers. Utilizing an ESP32 microcontroller, TinyML, and various hardware modules, the system intelligently detects crashes, provides localized audio alerts, and automatically notifies emergency contacts with GPS coordinates if the rider is incapacitated.
+SentryX is an embedded post-crash detection and emergency response system designed for two-wheelers. Utilizing an ESP32 microcontroller, TinyML, and various hardware modules, the system intelligently detects crashes, provides localized audio alerts, and automatically notifies emergency contacts with GPS coordinates if the rider is incapacitated.
 
 ## Features
 
@@ -101,7 +101,7 @@ App (Auth Gate)
 The app uses the **Web Bluetooth API** to connect to the ESP32.
 
 - Supported on Chrome and Edge (desktop & Android).
-- The ESP32 must advertise itself as `RIDE_CTRL`.
+- The ESP32 must advertise itself as `SentryX` (or `RIDE_CTRL`).
 - BLE Service/Characteristic UUIDs are defined in `src/services/bleService.ts` — update these to match your ESP32 firmware.
 - If BLE is not supported by the browser, the app falls back gracefully to a simulated mode.
 
