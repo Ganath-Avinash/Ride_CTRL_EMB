@@ -42,6 +42,10 @@ const defaultVehicle: Vehicle = {
   engineCC: '',
   color: '',
   licenseFileName: '',
+  lastServiceKm: 0,
+  serviceIntervalKm: 3000,
+  insuranceExpiry: '',
+  pucExpiry: '',
 };
 
 const defaultSettings: AppSettings = {
@@ -71,7 +75,10 @@ function save(key: string, value: unknown) {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [route, setRoute] = useState<AppRoute>('auth');
   const [user, setUserState] = useState<AppUser | null>(() => load('rc_user', null));
-  const [vehicle, setVehicleState] = useState<Vehicle>(() => load('rc_vehicle', defaultVehicle));
+  const [vehicle, setVehicleState] = useState<Vehicle>(() => {
+    const saved = load<Partial<Vehicle>>('rc_vehicle', {});
+    return { ...defaultVehicle, ...saved };
+  });
   const [contacts, setContacts] = useState<Contact[]>(() => load('rc_contacts', []));
   const [rideLogs, setRideLogs] = useState<RideLog[]>(() => load('rc_rides', []));
   const [settings, setSettings] = useState<AppSettings>(() => load('rc_settings', defaultSettings));

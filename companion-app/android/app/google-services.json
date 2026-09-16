@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "990687140657",
+    "project_id": "ride-ctrl",
+    "storage_bucket": "ride-ctrl.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:990687140657:android:96cbf43270d985da792e10",
+        "android_client_info": {
+          "package_name": "com.sentryx.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "990687140657-4spb0odvbk9bribpd6uaktnqii8pknhj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV3DSPB1mWiPOAY4SNL-Y3_vqvSK8Back"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "990687140657-4spb0odvbk9bribpd6uaktnqii8pknhj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

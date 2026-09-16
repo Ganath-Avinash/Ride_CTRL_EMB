@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- SentryX brand colors — matches zinc-950 dark bg of the web app -->
+    <color name="colorPrimary">#09090b</color>
+    <color name="colorPrimaryDark">#09090b</color>
+    <color name="colorAccent">#dc2626</color>
+    <color name="ic_launcher_background">#09090b</color>
+</resources>

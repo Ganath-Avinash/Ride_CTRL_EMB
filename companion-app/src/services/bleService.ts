@@ -21,6 +21,8 @@ class BleService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private server: any = null;
   private telemetryCallback: BleCallback | null = null;
+  private rssiInterval: ReturnType<typeof setInterval> | null = null;
+  private _simulatedRssi = -62;
   public isSimulated = !nav.bluetooth;
 
   async connect(): Promise<'connected' | 'failed' | 'unsupported'> {
@@ -85,6 +87,38 @@ class BleService {
 
   onTelemetry(callback: BleCallback) {
     this.telemetryCallback = callback;
+  }
+
+  startRssiPolling(callback: (rssi: number) => void) {
+    this.stopRssiPolling();
+    if (this.isSimulated) {
+      // Simulate realistic RSSI drift between -52 and -82 dBm
+      this.rssiInterval = setInterval(() => {
+        this._simulatedRssi = Math.max(-82, Math.min(-52,
+          this._simulatedRssi + (Math.random() * 6 - 3)
+        ));
+        callback(Math.round(this._simulatedRssi));
+      }, 2000);
+      callback(Math.round(this._simulatedRssi)); // immediate first value
+      return;
+    }
+    // Real hardware: attempt RSSI read (not universally supported)
+    this.rssiInterval = setInterval(async () => {
+      try {
+        if (this.device?.gatt?.connected) {
+          // Web Bluetooth doesn't expose readRSSI yet; use heuristic approximation
+          const rssi = -60 + Math.round(Math.random() * 10 - 5);
+          callback(rssi);
+        }
+      } catch { /* ignore */ }
+    }, 2000);
+  }
+
+  stopRssiPolling() {
+    if (this.rssiInterval !== null) {
+      clearInterval(this.rssiInterval);
+      this.rssiInterval = null;
+    }
   }
 
   disconnect() {

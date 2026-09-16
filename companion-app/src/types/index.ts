@@ -17,6 +17,12 @@ export interface Vehicle {
   engineCC: string;
   color: string;
   licenseFileName: string;
+  // Service health tracking
+  lastServiceKm: number;
+  serviceIntervalKm: number;
+  // Document expiry (YYYY-MM-DD strings)
+  insuranceExpiry: string;
+  pucExpiry: string;
 }
 
 export interface Contact {

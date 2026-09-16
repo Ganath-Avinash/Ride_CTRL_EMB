@@ -7,9 +7,18 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android:build": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@types/leaflet": "^1.9.22",
     "firebase": "^12.18.0",
     "leaflet": "^1.9.4",

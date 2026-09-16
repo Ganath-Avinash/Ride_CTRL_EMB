@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
-import { Bike, FileText, Upload, CheckCircle, Cpu, Wifi, ChevronRight, Save } from 'lucide-react';
+import { Bike, FileText, Upload, CheckCircle, Cpu, Wifi, ChevronRight, Save, Calendar, Wrench, Droplets } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { Vehicle } from '../types';
+
+// ── Helpers ────────────────────────────────────────────────
+function daysUntil(dateStr: string): number | null {
+  if (!dateStr) return null;
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
+function ExpiryBadge({ dateStr }: { dateStr: string }) {
+  const days = daysUntil(dateStr);
+  if (days === null) return null;
+  const cls = days < 0 ? 'expiry-badge expiry-badge--expired'
+    : days <= 30 ? 'expiry-badge expiry-badge--warn'
+    : 'expiry-badge expiry-badge--ok';
+  const label = days < 0 ? 'Expired' : days === 0 ? 'Today' : `${days}d left`;
+  return <span className={cls}>{label}</span>;
+}
 
 const MAKES = ['Bajaj', 'Royal Enfield', 'Honda', 'Hero', 'TVS', 'Yamaha', 'KTM', 'Suzuki', 'BMW', 'Triumph', 'Other'];
 const COLORS = ['Black', 'White', 'Red', 'Blue', 'Grey', 'Orange', 'Green', 'Yellow', 'Brown', 'Custom'];
@@ -127,6 +143,84 @@ export const GarageScreen: React.FC = () => {
           )}
           <input id="dl-file-input" type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={handleLicenseChange} />
         </label>
+
+        {/* ── Documents ──────────────────────────────────── */}
+        <div className="form-section-label" style={{ marginTop: 4 }}>Documents</div>
+
+        {/* Insurance Expiry */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              <Calendar size={14} />
+              Insurance Expiry
+            </div>
+            <ExpiryBadge dateStr={form.insuranceExpiry} />
+          </div>
+          <div className="expiry-row">
+            <input
+              id="vehicle-insurance-expiry"
+              type="date"
+              className="form-input"
+              value={form.insuranceExpiry}
+              onChange={e => setForm(f => ({ ...f, insuranceExpiry: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        {/* PUC Expiry */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              <FileText size={14} />
+              PUC Expiry
+            </div>
+            <ExpiryBadge dateStr={form.pucExpiry} />
+          </div>
+          <div className="expiry-row">
+            <input
+              id="vehicle-puc-expiry"
+              type="date"
+              className="form-input"
+              value={form.pucExpiry}
+              onChange={e => setForm(f => ({ ...f, pucExpiry: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        {/* ── Service Tracker ────────────────────────────── */}
+        <div className="form-section-label" style={{ marginTop: 4 }}>Service Tracker</div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {/* Last Service Odometer */}
+          <div className="form-field">
+            <Wrench size={15} className="form-field-icon" />
+            <input
+              id="vehicle-last-service-km"
+              className="form-input"
+              type="number"
+              placeholder="Last service km"
+              min={0}
+              value={form.lastServiceKm || ''}
+              onChange={e => setForm(f => ({ ...f, lastServiceKm: parseFloat(e.target.value) || 0 }))}
+            />
+          </div>
+          {/* Service Interval */}
+          <div className="form-field">
+            <Droplets size={15} className="form-field-icon" />
+            <select
+              id="vehicle-service-interval"
+              className="form-input form-select"
+              value={form.serviceIntervalKm}
+              onChange={e => setForm(f => ({ ...f, serviceIntervalKm: parseInt(e.target.value) }))}
+            >
+              <option value={1000}>Every 1 000 km</option>
+              <option value={2000}>Every 2 000 km</option>
+              <option value={3000}>Every 3 000 km</option>
+              <option value={5000}>Every 5 000 km</option>
+              <option value={10000}>Every 10 000 km</option>
+            </select>
+          </div>
+        </div>
 
         {/* Save Button */}
         <button id="btn-save-vehicle" type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 4 }}>

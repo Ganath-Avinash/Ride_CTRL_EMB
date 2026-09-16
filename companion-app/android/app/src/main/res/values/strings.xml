@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SentryX</string>
+    <string name="title_activity_main">SentryX</string>
+    <string name="package_name">com.sentryx.app</string>
+    <string name="custom_url_scheme">com.sentryx.app</string>
+    <string name="server_client_id">990687140657-4spb0odvbk9bribpd6uaktnqii8pknhj.apps.googleusercontent.com</string>
+</resources>

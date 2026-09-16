@@ -1,0 +1,36 @@
+{
+  "appId": "com.sentryx.app",
+  "appName": "SentryX",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": null,
+      "keystorePassword": null,
+      "keystoreAlias": null,
+      "keystoreAliasPassword": null,
+      "releaseType": "APK"
+    }
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#09090b",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#09090b"
+    },
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "990687140657-4spb0odvbk9bribpd6uaktnqii8pknhj.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    }
+  }
+}

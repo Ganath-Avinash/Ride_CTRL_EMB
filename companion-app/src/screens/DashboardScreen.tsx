@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { Activity, Gauge, Navigation, Bluetooth, BluetoothOff, BluetoothSearching, Play, Square, MapPin, Shield } from 'lucide-react';
+import {
+  Activity, Gauge, Navigation, Bluetooth, BluetoothOff, BluetoothSearching,
+  Play, Square, MapPin, Shield, Wrench, FileText, Moon,
+} from 'lucide-react';
 import { useHardwareSimulator } from '../simulator/useHardwareSimulator';
 import { EmergencyHUD } from '../components/EmergencyHUD';
 import { useApp } from '../context/AppContext';
@@ -16,27 +19,82 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
+// ── Helpers ─────────────────────────────────────────────────
+function formatTimer(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function daysUntil(dateStr: string): number | null {
+  if (!dateStr) return null;
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
+// ── RSSI Signal Bars ─────────────────────────────────────────
+function RssiBars({ rssi }: { rssi: number | null }) {
+  if (rssi === null) return null;
+  // 3 bars: strong ≥-65, medium ≥-75, weak <-75
+  const strength = rssi >= -65 ? 3 : rssi >= -75 ? 2 : 1;
+  const weakSignal = strength === 1;
+  return (
+    <div className="rssi-bars" title={`Signal: ${rssi} dBm`}>
+      {[1, 2, 3].map(b => (
+        <div
+          key={b}
+          className="rssi-bar"
+          style={{
+            height: `${4 + b * 4}px`,
+            background: b <= strength
+              ? (weakSignal ? 'var(--accent-red)' : 'var(--text-primary)')
+              : 'var(--bg-tertiary)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────
 export const DashboardScreen: React.FC = () => {
-  const { user, bleStatus, setBleStatus, addRideLog } = useApp();
+  const { user, bleStatus, setBleStatus, addRideLog, rideLogs, vehicle } = useApp();
   const {
     telemetry, systemState, countdown,
     triggerCrash, triggerPothole, triggerBraking, cancelAlert,
   } = useHardwareSimulator();
 
-  const [rideActive, setRideActive] = useState(false);
-  const [rideStart, setRideStart] = useState<number | null>(null);
-  const [rideMaxG, setRideMaxG] = useState(0);
-  const [rideEvents, setRideEvents] = useState<string[]>([]);
-  const [simOpen, setSimOpen] = useState(false);
-  const [location] = useState({ lat: 13.0827, lng: 80.2707 });
-  const rideMaxGRef = useRef(rideMaxG);
+  // ── Ride state ──────────────────────────────────────────────
+  const [rideActive, setRideActive]   = useState(false);
+  const [rideStart,  setRideStart]    = useState<number | null>(null);
+  const [rideMaxG,   setRideMaxG]     = useState(0);
+  const [rideEvents, setRideEvents]   = useState<string[]>([]);
+  const [rideElapsed, setRideElapsed] = useState(0);   // seconds
+  const rideMaxGRef   = useRef(rideMaxG);
   const rideEventsRef = useRef(rideEvents);
-  rideMaxGRef.current = rideMaxG;
+  rideMaxGRef.current   = rideMaxG;
   rideEventsRef.current = rideEvents;
 
-  const isEmergency = systemState === 'CRASH_PENDING' || systemState === 'CRASH_CONFIRMED' || systemState === 'SOS_SENT';
+  // ── UI state ────────────────────────────────────────────────
+  const [simOpen,  setSimOpen]  = useState(false);
+  const [bleRssi,  setBleRssi]  = useState<number | null>(null);
+  const [location] = useState({ lat: 13.0827, lng: 80.2707 });
 
-  // Track max G and events during active ride
+  // WakeLock ref (DND auto-mode)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wakeLockRef = useRef<any>(null);
+
+  const isEmergency = systemState === 'CRASH_PENDING'
+    || systemState === 'CRASH_CONFIRMED'
+    || systemState === 'SOS_SENT';
+
+  // ── Ride timer ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!rideActive) { setRideElapsed(0); return; }
+    const t = setInterval(() => setRideElapsed(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [rideActive]);
+
+  // ── Track max-G + events during active ride ─────────────────
   useEffect(() => {
     if (!rideActive) return;
     if (telemetry.gForce > rideMaxGRef.current) setRideMaxG(telemetry.gForce);
@@ -52,21 +110,51 @@ export const DashboardScreen: React.FC = () => {
       setRideEvents(e => [...e, 'SOS Sent']);
   }, [systemState, rideActive]);
 
+  // ── BLE RSSI polling ────────────────────────────────────────
+  useEffect(() => {
+    if (bleStatus !== 'connected') {
+      bleService.stopRssiPolling();
+      setBleRssi(null);
+      return;
+    }
+    bleService.startRssiPolling(setBleRssi);
+    return () => {
+      bleService.stopRssiPolling();
+      setBleRssi(null);
+    };
+  }, [bleStatus]);
+
+  // ── BLE connect handler ─────────────────────────────────────
   const handleBleConnect = async () => {
-    if (bleStatus === 'connected') { bleService.disconnect(); setBleStatus('disconnected'); return; }
+    if (bleStatus === 'connected') {
+      bleService.disconnect();
+      setBleStatus('disconnected');
+      return;
+    }
     setBleStatus('connecting');
     const res = await bleService.connect();
     setBleStatus(res === 'connected' ? 'connected' : res === 'unsupported' ? 'unsupported' : 'disconnected');
   };
 
-  const startRide = () => {
+  // ── Start ride (acquire WakeLock = DND mode) ────────────────
+  const startRide = useCallback(async () => {
     setRideActive(true);
     setRideStart(Date.now());
     setRideMaxG(1.0);
+    setRideElapsed(0);
     setRideEvents([]);
-  };
+    // Acquire screen wake lock to suppress auto-dim while riding
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const nav = navigator as any;
+      if (nav.wakeLock) {
+        wakeLockRef.current = await nav.wakeLock.request('screen');
+      }
+    } catch { /* WakeLock unsupported or denied — silently continue */ }
+  }, []);
 
-  const stopRide = () => {
+  // ── Stop ride (release WakeLock) ────────────────────────────
+  const stopRide = useCallback(() => {
     if (!rideStart) return;
     const log: RideLog = {
       id: crypto.randomUUID(),
@@ -77,30 +165,50 @@ export const DashboardScreen: React.FC = () => {
       events: rideEventsRef.current,
     };
     addRideLog(log);
+    // Release WakeLock
+    try { wakeLockRef.current?.release(); } catch { /* ignore */ }
+    wakeLockRef.current = null;
     setRideActive(false);
     setRideStart(null);
-  };
+  }, [rideStart, telemetry.speed, addRideLog]);
 
+  // ── Safety score ────────────────────────────────────────────
   const safetyScore = Math.max(0, Math.min(100,
     100 - (telemetry.gForce - 1) * 20 - Math.abs(telemetry.roll) * 0.5
   ));
 
+  // ── Reminder computations ───────────────────────────────────
+  const totalKm = rideLogs.reduce((s, r) => s + r.distanceKm, 0);
+  const kmSinceService = totalKm - (vehicle.lastServiceKm || 0);
+  const kmToService = vehicle.serviceIntervalKm > 0
+    ? vehicle.serviceIntervalKm - kmSinceService
+    : null;
+  const showServiceWarn = kmToService !== null && kmToService <= 200;
+
+  const insuranceDays = daysUntil(vehicle.insuranceExpiry);
+  const pucDays       = daysUntil(vehicle.pucExpiry);
+  const showInsuranceWarn = insuranceDays !== null && insuranceDays <= 30;
+  const showPucWarn       = pucDays       !== null && pucDays       <= 30;
+  const hasReminders = showServiceWarn || showInsuranceWarn || showPucWarn;
+
+  // ── Derived UI ──────────────────────────────────────────────
   const BleIcon = bleStatus === 'connected' ? Bluetooth
     : bleStatus === 'connecting' ? BluetoothSearching
     : BluetoothOff;
 
   const stateColor = systemState === 'NORMAL' ? 'var(--accent-green)'
-    : systemState === 'POTHOLE' ? 'var(--accent-orange)'
-    : systemState === 'HARD_BRAKING' ? 'var(--accent-yellow)'
+    : systemState === 'POTHOLE'       ? 'var(--accent-orange)'
+    : systemState === 'HARD_BRAKING'  ? 'var(--accent-yellow)'
     : 'var(--accent-red)';
 
-  const stateLabel = systemState === 'NORMAL' ? 'SYSTEM ARMED'
-    : systemState === 'POTHOLE' ? 'POTHOLE DETECTED'
-    : systemState === 'HARD_BRAKING' ? 'HARD BRAKING'
-    : systemState === 'CRASH_PENDING' ? 'CRASH DETECTED — SOS PENDING'
-    : systemState === 'CRASH_CONFIRMED' ? 'CRASH CONFIRMED — ALERTING'
+  const stateLabel = systemState === 'NORMAL'         ? 'SYSTEM ARMED'
+    : systemState === 'POTHOLE'        ? 'POTHOLE DETECTED'
+    : systemState === 'HARD_BRAKING'   ? 'HARD BRAKING'
+    : systemState === 'CRASH_PENDING'  ? 'CRASH DETECTED — SOS PENDING'
+    : systemState === 'CRASH_CONFIRMED'? 'CRASH CONFIRMED — ALERTING'
     : 'SOS SENT';
 
+  // ── Emergency overlay ───────────────────────────────────────
   if (isEmergency) {
     return (
       <EmergencyHUD
@@ -115,47 +223,125 @@ export const DashboardScreen: React.FC = () => {
   return (
     <div className="screen">
 
-
-      {/* Header */}
+      {/* ── Header ── */}
       <header className="screen-header">
         <div>
           <h2 className="brand-title">SentryX</h2>
-          <p className="text-secondary" style={{ fontSize: '13px' }}>
-            Welcome back, {user?.name?.split(' ')[0] ?? 'Rider'}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <p className="text-secondary" style={{ fontSize: '13px', margin: 0 }}>
+              Welcome back, {user?.name?.split(' ')[0] ?? 'Rider'}
+            </p>
+            {/* DND / WakeLock pill — shown while riding */}
+            {rideActive && (
+              <span className="dnd-pill">
+                <Moon size={9} />
+                Screen On
+              </span>
+            )}
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {/* Ride button */}
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* Ride timer chip */}
+          {rideActive && (
+            <span className="ride-timer-chip">{formatTimer(rideElapsed)}</span>
+          )}
+
+          {/* Ride start / stop */}
           {rideActive ? (
-            <button id="btn-stop-ride" className="btn btn-danger" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={stopRide}>
+            <button
+              id="btn-stop-ride"
+              className="btn btn-danger"
+              style={{ padding: '8px 14px', fontSize: '13px' }}
+              onClick={stopRide}
+            >
               <Square size={14} style={{ marginRight: 6 }} /> Stop
             </button>
           ) : (
-            <button id="btn-start-ride" className="btn btn-primary" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={startRide}>
+            <button
+              id="btn-start-ride"
+              className="btn btn-primary"
+              style={{ padding: '8px 14px', fontSize: '13px' }}
+              onClick={startRide}
+            >
               <Play size={14} style={{ marginRight: 6 }} /> Ride
             </button>
           )}
-          {/* BLE button */}
-          <button
-            id="btn-ble-connect"
-            className={`ble-btn ble-btn--${bleStatus}`}
-            onClick={handleBleConnect}
-            title={bleStatus === 'unsupported' ? 'BLE not supported in this browser' : 'Toggle BLE connection'}
-          >
-            <BleIcon size={18} />
-          </button>
+
+          {/* BLE button + RSSI bars */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            {bleStatus === 'connected' && <RssiBars rssi={bleRssi} />}
+            <button
+              id="btn-ble-connect"
+              className={`ble-btn ble-btn--${bleStatus}`}
+              onClick={handleBleConnect}
+              title={bleStatus === 'unsupported' ? 'BLE not supported in this browser' : 'Toggle BLE connection'}
+            >
+              <BleIcon size={18} />
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* System State Banner */}
+      {/* ── System State Banner ── */}
       <div className="state-banner" style={{ borderColor: stateColor, color: stateColor }}>
         <Shield size={14} />
         <span>{stateLabel}</span>
-        <div className={`state-dot${systemState !== 'NORMAL' ? ' state-dot--pulse' : ''}`}
-          style={{ background: stateColor }} />
+        <div
+          className={`state-dot${systemState !== 'NORMAL' ? ' state-dot--pulse' : ''}`}
+          style={{ background: stateColor }}
+        />
       </div>
 
-      {/* Telemetry Grid */}
+      {/* ── Reminder Banner (health + doc expiry) ── */}
+      {hasReminders && (
+        <div className="reminder-banner">
+          {showServiceWarn && (
+            <div className="reminder-item">
+              <div
+                className="reminder-dot"
+                style={{ background: kmToService !== null && kmToService < 0 ? 'var(--accent-red)' : 'var(--accent-orange)' }}
+              />
+              <Wrench size={12} style={{ flexShrink: 0, color: 'var(--text-tertiary)' }} />
+              <span>
+                {kmToService !== null && kmToService < 0
+                  ? `Service overdue by ${Math.round(Math.abs(kmToService))} km — visit a workshop`
+                  : `Service due in ~${Math.round(kmToService!)} km`}
+              </span>
+            </div>
+          )}
+          {showInsuranceWarn && (
+            <div className="reminder-item">
+              <div
+                className="reminder-dot"
+                style={{ background: insuranceDays! < 0 ? 'var(--accent-red)' : 'var(--accent-orange)' }}
+              />
+              <FileText size={12} style={{ flexShrink: 0, color: 'var(--text-tertiary)' }} />
+              <span>
+                {insuranceDays! < 0
+                  ? 'Insurance expired — renew immediately'
+                  : `Insurance expires in ${insuranceDays} day${insuranceDays === 1 ? '' : 's'}`}
+              </span>
+            </div>
+          )}
+          {showPucWarn && (
+            <div className="reminder-item">
+              <div
+                className="reminder-dot"
+                style={{ background: pucDays! < 0 ? 'var(--accent-red)' : 'var(--accent-orange)' }}
+              />
+              <FileText size={12} style={{ flexShrink: 0, color: 'var(--text-tertiary)' }} />
+              <span>
+                {pucDays! < 0
+                  ? 'PUC expired — renew immediately'
+                  : `PUC expires in ${pucDays} day${pucDays === 1 ? '' : 's'}`}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Telemetry Grid ── */}
       <div className="telemetry-grid">
         <div className="telem-card">
           <Gauge size={20} className="telem-icon" />
@@ -179,11 +365,14 @@ export const DashboardScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Safety Score */}
+      {/* ── Safety Score ── */}
       <div className="card" style={{ margin: '0 16px', padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '1px' }}>SAFETY SCORE</span>
-          <span style={{ fontSize: '24px', fontWeight: 700, color: safetyScore > 70 ? 'var(--accent-green)' : safetyScore > 40 ? 'var(--accent-orange)' : 'var(--accent-red)' }}>
+          <span style={{
+            fontSize: '24px', fontWeight: 700,
+            color: safetyScore > 70 ? 'var(--accent-green)' : safetyScore > 40 ? 'var(--accent-orange)' : 'var(--accent-red)',
+          }}>
             {safetyScore.toFixed(0)}
           </span>
         </div>
@@ -195,14 +384,20 @@ export const DashboardScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Live Map */}
+      {/* ── Live Map ── */}
       <div className="card map-widget" style={{ margin: '16px 16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px 8px' }}>
           <MapPin size={16} color="var(--accent-blue)" />
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '1px' }}>LIVE LOCATION</span>
         </div>
         <div style={{ height: 180, borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
-          <MapContainer center={[location.lat, location.lng]} zoom={14} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>
+          <MapContainer
+            center={[location.lat, location.lng]}
+            zoom={14}
+            style={{ height: '100%', width: '100%' }}
+            zoomControl={false}
+            attributionControl={false}
+          >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; OpenStreetMap contributors'
@@ -214,7 +409,7 @@ export const DashboardScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Hardware Simulator (collapsible) */}
+      {/* ── Hardware Simulator (collapsible) ── */}
       <div className="card" style={{ margin: '16px 16px 16px' }}>
         <button
           id="btn-toggle-simulator"
@@ -228,7 +423,15 @@ export const DashboardScreen: React.FC = () => {
           <div style={{ padding: '0 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <button id="btn-sim-pothole" className="btn" style={{ background: 'var(--accent-orange)', color: 'white', fontSize: 13 }} onClick={triggerPothole}>Pothole</button>
             <button id="btn-sim-braking" className="btn btn-secondary" style={{ fontSize: 13 }} onClick={triggerBraking}>Hard Braking</button>
-            <button id="btn-sim-crash" className="btn btn-danger" style={{ gridColumn: '1 / -1', fontSize: 13 }} onClick={() => { triggerCrash(); if (rideActive) setRideEvents(e => [...e, 'Crash Triggered']); }}>
+            <button
+              id="btn-sim-crash"
+              className="btn btn-danger"
+              style={{ gridColumn: '1 / -1', fontSize: 13 }}
+              onClick={() => {
+                triggerCrash();
+                if (rideActive) setRideEvents(e => [...e, 'Crash Triggered']);
+              }}
+            >
               Simulate Crash (Trigger SOS)
             </button>
           </div>

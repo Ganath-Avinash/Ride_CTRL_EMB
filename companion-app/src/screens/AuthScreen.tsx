@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import React, { useState, useEffect } from 'react';
+import { signInWithPopup, signInWithCredential, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 import { auth, googleProvider, isFirebaseConfigured } from '../services/firebaseConfig';
 import { useApp } from '../context/AppContext';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -28,6 +30,16 @@ export const AuthScreen: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        GoogleAuth.initialize();
+      } catch (e) {
+        console.warn('GoogleAuth.initialize:', e);
+      }
+    }
+  }, []);
+
   const handleGoogleSignIn = async () => {
     if (!isFirebaseConfigured || !auth) {
       setError('Firebase is not configured. Update src/services/firebaseConfig.ts.');
@@ -36,16 +48,35 @@ export const AuthScreen: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const fbUser = result.user;
-      setUser({
-        uid: fbUser.uid,
-        name: fbUser.displayName ?? 'Rider',
-        email: fbUser.email ?? '',
-        photoURL: fbUser.photoURL ?? undefined,
-      });
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message.replace('Firebase: ', '') : 'Sign-in failed.');
+      if (Capacitor.isNativePlatform()) {
+        const googleUser = await GoogleAuth.signIn();
+        const idToken = googleUser.authentication?.idToken;
+        if (!idToken) {
+          throw new Error('Google Sign-In failed: No ID Token returned.');
+        }
+        const credential = GoogleAuthProvider.credential(idToken);
+        const result = await signInWithCredential(auth, credential);
+        const fbUser = result.user;
+        setUser({
+          uid: fbUser.uid,
+          name: fbUser.displayName ?? googleUser.givenName ?? 'Rider',
+          email: fbUser.email ?? googleUser.email ?? '',
+          photoURL: fbUser.photoURL ?? googleUser.imageUrl ?? undefined,
+        });
+      } else {
+        const result = await signInWithPopup(auth, googleProvider);
+        const fbUser = result.user;
+        setUser({
+          uid: fbUser.uid,
+          name: fbUser.displayName ?? 'Rider',
+          email: fbUser.email ?? '',
+          photoURL: fbUser.photoURL ?? undefined,
+        });
+      }
+    } catch (e: any) {
+      console.error('Google Sign-In Error:', e);
+      const msg = e?.message || e?.error || (typeof e === 'string' ? e : JSON.stringify(e));
+      setError(msg ? msg.replace('Firebase: ', '') : 'Sign-in failed.');
     } finally {
       setLoading(false);
     }
