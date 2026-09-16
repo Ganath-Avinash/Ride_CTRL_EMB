@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Shield, GitBranch, Smartphone, HelpCircle, Cloud, RefreshCw, Server, Check } from 'lucide-react';
+import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Shield, GitBranch, Smartphone, HelpCircle, Cloud, RefreshCw, Server, Check, Bike } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ThemeToggle } from '../components/ThemeToggle';
 import Stepper, { Step } from '../components/Stepper';
@@ -65,8 +65,8 @@ export const ProfileScreen: React.FC = () => {
           <h3 style={{ fontSize: '20px', fontWeight: 700 }}>{user?.name}</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{user?.email}</p>
           {vehicle.customName && (
-            <p style={{ color: 'var(--accent-red)', fontSize: '13px', marginTop: 4, fontWeight: 600 }}>
-              🏍 {vehicle.customName}
+            <p style={{ color: 'var(--accent-red)', fontSize: '13px', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <Bike size={14} /> {vehicle.customName}
             </p>
           )}
         </div>

@@ -17,19 +17,19 @@ import type { RideLog } from '../types';
 const safetyStats = [
   {
     image: 'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=1600&auto=format&fit=crop&q=80',
-    caption: '🌍  1.35 million road deaths per year — WHO 2023',
+    caption: '1.35 million road deaths per year — WHO 2023',
   },
   {
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&auto=format&fit=crop&q=80',
-    caption: '🇮🇳  India reports 4.5 lakh accidents annually',
+    caption: 'India reports 4.5 lakh accidents annually',
   },
   {
     image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=1600&auto=format&fit=crop&q=80',
-    caption: '⛑️  Helmets reduce fatality risk by 42% — NHTSA',
+    caption: 'Helmets reduce fatality risk by 42% — NHTSA',
   },
   {
     image: 'https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=1600&auto=format&fit=crop&q=80',
-    caption: '⚡  <10 min response time increases survival by 40%',
+    caption: '<10 min response time increases survival by 40%',
   },
 ];
 
@@ -266,8 +266,7 @@ export const DashboardScreen: React.FC = () => {
         <header className="screen-header">
           {/* Left: brand + greeting */}
           <div className="screen-header-left">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-red)', boxShadow: '0 0 10px rgba(239, 68, 68, 0.8)', flexShrink: 0 }} />
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
               <SplitText
                 text="SentryX"
                 className="brand-title"

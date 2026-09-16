@@ -11,7 +11,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { auth, googleProvider, isFirebaseConfigured } from '../services/firebaseConfig';
 import { useApp } from '../context/AppContext';
-import { Mail, Lock, User, AlertTriangle, Shield, Cpu, Activity, ChevronRight } from 'lucide-react';
+import { Mail, Lock, User, AlertTriangle, Shield, Cpu, Activity, ChevronRight, Radio } from 'lucide-react';
 import Stepper, { Step } from '../components/Stepper';
 import MagicRings from '../components/MagicRings';
 import SplitText from '../components/SplitText';
@@ -115,15 +115,15 @@ export const AuthScreen: React.FC = () => {
       {/* ── Background animation ─────────────────────────── */}
       <div className="auth-bg">
         <MagicRings
-          color="#ef4444"
-          colorTwo="#8b5cf6"
+          color="#71717a"
+          colorTwo="#a1a1aa"
           ringCount={6}
-          speed={0.5}
-          lineThickness={1.2}
+          speed={0.4}
+          lineThickness={1.0}
           baseRadius={0.22}
           radiusStep={0.12}
-          opacity={0.45}
-          noiseAmount={0.1}
+          opacity={0.2}
+          noiseAmount={0.08}
           ringGap={1.4}
           fadeIn={0.8}
           followMouse={false}
@@ -131,54 +131,54 @@ export const AuthScreen: React.FC = () => {
       </div>
 
       {/* ── Main Content ─────────────────────────────────── */}
-      <div className="auth-content" style={{ padding: '24px 20px 36px' }}>
+      <div className="auth-content">
 
-        {/* Hero Branding Section */}
-        <div className="auth-hero-branding" style={{ textAlign: 'center', margin: '20px 0 28px' }}>
-          <div className="auth-logo-icon" style={{ margin: '0 auto 14px', width: 64, height: 64, borderRadius: 18, background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', boxShadow: '0 0 24px rgba(239, 68, 68, 0.25)' }}>
-            <img src="/imgs/helmey.png" alt="SentryX" style={{ width: 44, height: 44 }} />
+        {/* Compact Left-Aligned Apple-like Branding Header */}
+        <div className="auth-hero-branding">
+          <div className="auth-brand-row">
+            <div className="auth-logo-icon">
+              <img src="/imgs/helmey.png" alt="SentryX" />
+            </div>
+            <div className="auth-brand-text">
+              <div style={{ display: 'inline-block' }}>
+                <SplitText
+                  text="SentryX"
+                  className="auth-title"
+                  delay={40}
+                  duration={0.5}
+                  ease="power3.out"
+                  splitType="chars"
+                  from={{ opacity: 0, y: 12 }}
+                  to={{ opacity: 1, y: 0 }}
+                  textAlign="left"
+                />
+              </div>
+              <p className="auth-subtitle">Two-Wheeler Safety System</p>
+            </div>
           </div>
 
-          <div style={{ display: 'inline-block' }}>
-            <SplitText
-              text="SentryX"
-              className="auth-title"
-              delay={50}
-              duration={0.6}
-              ease="power3.out"
-              splitType="chars"
-              from={{ opacity: 0, y: 18 }}
-              to={{ opacity: 1, y: 0 }}
-              textAlign="center"
-            />
-          </div>
-
-          <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-secondary)', marginTop: 4 }}>
-            IoT Two-Wheeler Safety System
-          </p>
-          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
-            Detect. Alert. Respond.
-          </p>
-
-          {/* Value Badges */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              🤖 TinyML Crash AI
+          {/* Monochrome Apple-like inline badges */}
+          <div className="auth-badges-row">
+            <span className="auth-badge">
+              <Cpu size={12} style={{ opacity: 0.7 }} />
+              <span>Crash AI</span>
             </span>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#60a5fa', background: 'rgba(59, 130, 246, 0.1)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-              📡 Auto GSM SOS
+            <span className="auth-badge">
+              <Radio size={12} style={{ opacity: 0.7 }} />
+              <span>GSM SOS</span>
             </span>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#c084fc', background: 'rgba(168, 85, 247, 0.1)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
-              ⚡ BLE Telemetry
+            <span className="auth-badge">
+              <Activity size={12} style={{ opacity: 0.7 }} />
+              <span>Telemetry</span>
             </span>
           </div>
         </div>
 
-        {/* Elevated Glass Form Card */}
-        <div className="card" style={{ padding: '24px 20px', background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: '20px', boxShadow: 'var(--shadow-lg)' }}>
+        {/* Prominent Elevated Glass Form Card */}
+        <div className="card auth-card">
 
           {/* Mode Switcher Tabs */}
-          <div className="auth-mode-tabs" style={{ marginBottom: 20 }}>
+          <div className="auth-mode-tabs">
             <button
               type="button"
               className={`auth-mode-tab${mode === 'signin' ? ' active' : ''}`}
@@ -197,8 +197,8 @@ export const AuthScreen: React.FC = () => {
 
           {/* Firebase Warning if unconfigured */}
           {!isFirebaseConfigured && (
-            <div className="auth-warning" style={{ marginBottom: 16 }}>
-              <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+            <div className="auth-warning">
+              <AlertTriangle size={13} style={{ flexShrink: 0 }} />
               <span>Firebase not configured — update <code>firebaseConfig.ts</code>.</span>
             </div>
           )}
@@ -209,19 +209,18 @@ export const AuthScreen: React.FC = () => {
             className="btn-google"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            style={{ marginBottom: 16 }}
           >
             <GoogleG />
             <span>Continue with Google</span>
           </button>
 
-          <div className="auth-divider" style={{ marginBottom: 16 }}><span>or email</span></div>
+          <div className="auth-divider"><span>or email</span></div>
 
           {/* Email/Password Form */}
-          <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={handleEmailAuth} className="auth-form-fields">
             {mode === 'signup' && (
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Full Name</label>
+              <div className="auth-input-group">
+                <label className="auth-label">Full Name</label>
                 <div className="form-field">
                   <User size={16} className="form-field-icon" />
                   <input
@@ -232,13 +231,14 @@ export const AuthScreen: React.FC = () => {
                     value={name}
                     onChange={e => setName(e.target.value)}
                     required
+                    autoComplete="name"
                   />
                 </div>
               </div>
             )}
 
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Email Address</label>
+            <div className="auth-input-group">
+              <label className="auth-label">Email Address</label>
               <div className="form-field">
                 <Mail size={16} className="form-field-icon" />
                 <input
@@ -249,12 +249,13 @@ export const AuthScreen: React.FC = () => {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Password</label>
+            <div className="auth-input-group">
+              <label className="auth-label">Password</label>
               <div className="form-field">
                 <Lock size={16} className="form-field-icon" />
                 <input
@@ -266,6 +267,7 @@ export const AuthScreen: React.FC = () => {
                   onChange={e => setPassword(e.target.value)}
                   required
                   minLength={6}
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 />
               </div>
             </div>
@@ -279,55 +281,38 @@ export const AuthScreen: React.FC = () => {
 
             <button
               id="btn-auth-submit"
-              className="btn btn-primary"
+              className="btn btn-primary btn-auth-submit"
               type="submit"
               disabled={loading}
-              style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-md)', fontSize: '15px', marginTop: 4, background: 'var(--accent-red)', color: '#ffffff' }}
             >
-              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In to SentryX' : 'Create Free Account'}
+              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
             </button>
           </form>
 
           {/* Toggle Sign In / Sign Up */}
-          <p className="auth-toggle" style={{ marginTop: 16 }}>
+          <p className="auth-toggle">
             {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
             <button
               id="btn-toggle-auth-mode"
               className="auth-toggle-btn"
               onClick={() => { setMode(m => m === 'signin' ? 'signup' : 'signin'); setError(''); }}
-              style={{ fontWeight: 700, color: 'var(--accent-red)' }}
             >
               {mode === 'signin' ? 'Sign Up' : 'Sign In'}
             </button>
           </p>
         </div>
 
-        {/* Feature Highlights Section */}
-        <div className="card" style={{ marginTop: 16, padding: '16px 18px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>App Capabilities</span>
-            <button
-              type="button"
-              onClick={() => setShowTour(true)}
-              style={{ background: 'none', border: 'none', color: 'var(--accent-red)', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer' }}
-            >
-              Learn More <ChevronRight size={14} />
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, textAlign: 'center' }}>
-            <div style={{ padding: '8px 4px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
-              <Cpu size={18} color="var(--accent-red)" style={{ marginBottom: 4 }} />
-              <div style={{ fontSize: '11px', fontWeight: 600 }}>TinyML AI</div>
-            </div>
-            <div style={{ padding: '8px 4px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
-              <Shield size={18} color="var(--accent-blue)" style={{ marginBottom: 4 }} />
-              <div style={{ fontSize: '11px', fontWeight: 600 }}>Auto SOS</div>
-            </div>
-            <div style={{ padding: '8px 4px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
-              <Activity size={18} color="var(--accent-green)" style={{ marginBottom: 4 }} />
-              <div style={{ fontSize: '11px', fontWeight: 600 }}>Telemetry</div>
-            </div>
-          </div>
+        {/* Subtle Tour Link Footer */}
+        <div style={{ textAlign: 'center', marginTop: 18, marginBottom: 8 }}>
+          <button
+            type="button"
+            className="auth-tour-btn"
+            onClick={() => setShowTour(true)}
+          >
+            <Shield size={13} color="var(--text-secondary)" />
+            <span>How SentryX Protects Riders</span>
+            <ChevronRight size={13} style={{ opacity: 0.6 }} />
+          </button>
         </div>
 
       </div>

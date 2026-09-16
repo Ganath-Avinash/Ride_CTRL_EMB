@@ -5,6 +5,7 @@ import React, {
   type ReactNode,
   useState,
 } from 'react';
+import { X } from 'lucide-react';
 import './Stepper.css';
 
 export interface StepperProps extends HTMLAttributes<HTMLDivElement> {
@@ -99,7 +100,7 @@ export default function Stepper({
                 className="step-card-close-btn"
                 aria-label="Close"
               >
-                ✕
+                <X size={14} />
               </button>
             )}
           </div>

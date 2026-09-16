@@ -242,7 +242,7 @@ export const GarageScreen: React.FC = () => {
         </div>
 
         {/* 1. Driving License */}
-        <div className="card" style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '14px' }}>
+        <div className="card" style={{ padding: '14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: '13px', fontWeight: 600 }}>Driving License</span>
             {form.licenseFileName && (
@@ -254,7 +254,7 @@ export const GarageScreen: React.FC = () => {
 
           {form.licenseFileName ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
                 <FileText size={16} color="var(--accent-blue)" />
                 <span style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                   {form.licenseFileName}
@@ -295,7 +295,7 @@ export const GarageScreen: React.FC = () => {
         </div>
 
         {/* 2. Insurance Policy */}
-        <div className="card" style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '14px' }}>
+        <div className="card" style={{ padding: '14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '13px', fontWeight: 600 }}>
               <Calendar size={14} /> Insurance Policy
@@ -316,7 +316,7 @@ export const GarageScreen: React.FC = () => {
 
           {form.insuranceFileName ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
                 <FileText size={16} color="var(--accent-green)" />
                 <span style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                   {form.insuranceFileName}
@@ -357,7 +357,7 @@ export const GarageScreen: React.FC = () => {
         </div>
 
         {/* 3. PUC Certificate */}
-        <div className="card" style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '14px' }}>
+        <div className="card" style={{ padding: '14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '13px', fontWeight: 600 }}>
               <FileText size={14} /> PUC Certificate

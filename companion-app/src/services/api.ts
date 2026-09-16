@@ -59,9 +59,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}, timeoutMs
   } catch (err: any) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') {
-      console.warn(`⚠️ [API Timeout] ${endpoint} took longer than ${timeoutMs}ms`);
+      console.warn(`[API Timeout] ${endpoint} took longer than ${timeoutMs}ms`);
     } else {
-      console.warn(`⚠️ [API Error] ${endpoint}:`, err.message || err);
+      console.warn(`[API Error] ${endpoint}:`, err.message || err);
     }
     return null;
   }
@@ -161,7 +161,7 @@ export const api = {
 
       return await res.json();
     } catch (err: any) {
-      console.error('❌ [Document Upload Error]:', err.message || err);
+      console.error('[Document Upload Error]:', err.message || err);
       return null;
     }
   },
