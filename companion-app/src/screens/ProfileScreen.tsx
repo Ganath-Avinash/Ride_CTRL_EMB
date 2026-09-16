@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Shield, GitBranch, Smartphone, HelpCircle } from 'lucide-react';
+import { LogOut, Clock, AlertTriangle, Volume2, VolumeX, ChevronRight, Shield, GitBranch, Smartphone, HelpCircle, Cloud, RefreshCw, Server, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ThemeToggle } from '../components/ThemeToggle';
 import Stepper, { Step } from '../components/Stepper';
+import { getApiBaseUrl, setCustomApiUrl } from '../services/api';
 import type { RideLog } from '../types';
 
 function formatDuration(ms: number): string {
@@ -22,9 +23,17 @@ function formatDate(ts: number): string {
 const gColor = (g: number) => g > 3 ? 'var(--accent-red)' : g > 2 ? 'var(--accent-orange)' : 'var(--accent-green)';
 
 export const ProfileScreen: React.FC = () => {
-  const { user, setUser, settings, updateSettings, rideLogs, vehicle } = useApp();
+  const { user, setUser, settings, updateSettings, rideLogs, vehicle, syncStatus, refreshFromCloud } = useApp();
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [serverUrl, setServerUrl] = useState(() => getApiBaseUrl());
+  const [urlSaved, setUrlSaved] = useState(false);
+
+  const handleSaveServerUrl = () => {
+    setCustomApiUrl(serverUrl);
+    setUrlSaved(true);
+    setTimeout(() => setUrlSaved(false), 2000);
+  };
 
   const handleLogout = () => {
     if (!confirmLogout) { setConfirmLogout(true); setTimeout(() => setConfirmLogout(false), 3000); return; }
@@ -180,6 +189,63 @@ export const ProfileScreen: React.FC = () => {
               <div style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Light · System · Dark</div>
             </div>
             <ThemeToggle compact />
+          </div>
+        </div>
+      </div>
+
+      {/* Cloud & Database Sync */}
+      <div style={{ padding: '0 16px', marginBottom: 20 }}>
+        <div className="form-section-label" style={{ marginBottom: 12 }}>Cloud Database (MongoDB)</div>
+        <div className="settings-card card">
+          <div className="settings-row">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Cloud size={18} color="var(--accent-blue)" />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>MongoDB Atlas Sync</div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
+                  {syncStatus === 'syncing' ? 'Syncing with Atlas...' : syncStatus === 'saved' ? 'All changes saved to cloud' : 'Connected to cloud cluster'}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ fontSize: '12px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 6 }}
+              onClick={() => refreshFromCloud()}
+            >
+              <RefreshCw size={12} className={syncStatus === 'syncing' ? 'animate-spin' : ''} /> Sync Now
+            </button>
+          </div>
+
+          <div className="settings-divider" />
+
+          {/* Backend API Server Configuration for Mobile APK testing */}
+          <div style={{ padding: '12px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <Server size={15} color="var(--text-secondary)" />
+              <span style={{ fontWeight: 600, fontSize: '13px' }}>Backend API Server</span>
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: 8, lineHeight: 1.4 }}>
+              Set to your PC Wi-Fi IP (e.g. <code>http://192.168.1.100:5001</code>) when testing on physical mobile devices.
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                className="form-input"
+                style={{ fontSize: '12px', padding: '6px 10px' }}
+                placeholder="http://localhost:5001"
+                value={serverUrl}
+                onChange={e => setServerUrl(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ fontSize: '12px', padding: '6px 12px', whiteSpace: 'nowrap' }}
+                onClick={handleSaveServerUrl}
+              >
+                {urlSaved ? <Check size={14} color="var(--accent-green)" /> : 'Set'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

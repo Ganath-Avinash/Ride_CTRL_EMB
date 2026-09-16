@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { signInWithPopup, signInWithCredential, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { 
+  signInWithPopup, 
+  signInWithCredential, 
+  GoogleAuthProvider, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  updateProfile 
+} from 'firebase/auth';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { auth, googleProvider, isFirebaseConfigured } from '../services/firebaseConfig';
 import { useApp } from '../context/AppContext';
-import { ThemeToggle } from '../components/ThemeToggle';
-import { Mail, Lock, User, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, User, AlertTriangle, Shield, Cpu, Activity, ChevronRight } from 'lucide-react';
 import Stepper, { Step } from '../components/Stepper';
+import MagicRings from '../components/MagicRings';
+import SplitText from '../components/SplitText';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -32,11 +40,7 @@ export const AuthScreen: React.FC = () => {
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      try {
-        GoogleAuth.initialize();
-      } catch (e) {
-        console.warn('GoogleAuth.initialize:', e);
-      }
+      try { GoogleAuth.initialize(); } catch (e) { console.warn('GoogleAuth.initialize:', e); }
     }
   }, []);
 
@@ -51,30 +55,27 @@ export const AuthScreen: React.FC = () => {
       if (Capacitor.isNativePlatform()) {
         const googleUser = await GoogleAuth.signIn();
         const idToken = googleUser.authentication?.idToken;
-        if (!idToken) {
-          throw new Error('Google Sign-In failed: No ID Token returned.');
-        }
+        if (!idToken) throw new Error('Google Sign-In failed: No ID Token returned.');
         const credential = GoogleAuthProvider.credential(idToken);
         const result = await signInWithCredential(auth, credential);
         const fbUser = result.user;
-        setUser({
-          uid: fbUser.uid,
-          name: fbUser.displayName ?? googleUser.givenName ?? 'Rider',
-          email: fbUser.email ?? googleUser.email ?? '',
-          photoURL: fbUser.photoURL ?? googleUser.imageUrl ?? undefined,
+        setUser({ 
+          uid: fbUser.uid, 
+          name: fbUser.displayName ?? googleUser.givenName ?? 'Rider', 
+          email: fbUser.email ?? googleUser.email ?? '', 
+          photoURL: fbUser.photoURL ?? googleUser.imageUrl ?? undefined 
         });
       } else {
         const result = await signInWithPopup(auth, googleProvider);
         const fbUser = result.user;
-        setUser({
-          uid: fbUser.uid,
-          name: fbUser.displayName ?? 'Rider',
-          email: fbUser.email ?? '',
-          photoURL: fbUser.photoURL ?? undefined,
+        setUser({ 
+          uid: fbUser.uid, 
+          name: fbUser.displayName ?? 'Rider', 
+          email: fbUser.email ?? '', 
+          photoURL: fbUser.photoURL ?? undefined 
         });
       }
     } catch (e: any) {
-      console.error('Google Sign-In Error:', e);
       const msg = e?.message || e?.error || (typeof e === 'string' ? e : JSON.stringify(e));
       setError(msg ? msg.replace('Firebase: ', '') : 'Sign-in failed.');
     } finally {
@@ -84,10 +85,7 @@ export const AuthScreen: React.FC = () => {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFirebaseConfigured || !auth) {
-      setError('Firebase is not configured.');
-      return;
-    }
+    if (!isFirebaseConfigured || !auth) { setError('Firebase is not configured.'); return; }
     setLoading(true);
     setError('');
     try {
@@ -97,11 +95,11 @@ export const AuthScreen: React.FC = () => {
         setUser({ uid: cred.user.uid, name, email });
       } else {
         const cred = await signInWithEmailAndPassword(auth, email, password);
-        setUser({
-          uid: cred.user.uid,
-          name: cred.user.displayName ?? email.split('@')[0],
-          email: cred.user.email ?? email,
-          photoURL: cred.user.photoURL ?? undefined,
+        setUser({ 
+          uid: cred.user.uid, 
+          name: cred.user.displayName ?? email.split('@')[0], 
+          email: cred.user.email ?? email, 
+          photoURL: cred.user.photoURL ?? undefined 
         });
       }
     } catch (e: unknown) {
@@ -113,85 +111,163 @@ export const AuthScreen: React.FC = () => {
 
   return (
     <div className="auth-screen">
-      <div className="auth-top-bar">
-        <div className="auth-logo-icon">
-          <img src="/imgs/helmey.png" alt="SentryX Helmet" />
-        </div>
-        <ThemeToggle compact />
+
+      {/* ── Background animation ─────────────────────────── */}
+      <div className="auth-bg">
+        <MagicRings
+          color="#ef4444"
+          colorTwo="#8b5cf6"
+          ringCount={6}
+          speed={0.5}
+          lineThickness={1.2}
+          baseRadius={0.22}
+          radiusStep={0.12}
+          opacity={0.45}
+          noiseAmount={0.1}
+          ringGap={1.4}
+          fadeIn={0.8}
+          followMouse={false}
+        />
       </div>
 
-      <div className="auth-content">
-        {/* Logo / Branding */}
-        <div className="auth-logo">
-          <h1 className="auth-title">SentryX</h1>
-          <p className="auth-subtitle">Two-Wheeler Safety System</p>
-          <p className="auth-tagline">Detect. Alert. Respond.</p>
+      {/* ── Main Content ─────────────────────────────────── */}
+      <div className="auth-content" style={{ padding: '24px 20px 36px' }}>
+
+        {/* Hero Branding Section */}
+        <div className="auth-hero-branding" style={{ textAlign: 'center', margin: '20px 0 28px' }}>
+          <div className="auth-logo-icon" style={{ margin: '0 auto 14px', width: 64, height: 64, borderRadius: 18, background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', boxShadow: '0 0 24px rgba(239, 68, 68, 0.25)' }}>
+            <img src="/imgs/helmey.png" alt="SentryX" style={{ width: 44, height: 44 }} />
+          </div>
+
+          <div style={{ display: 'inline-block' }}>
+            <SplitText
+              text="SentryX"
+              className="auth-title"
+              delay={50}
+              duration={0.6}
+              ease="power3.out"
+              splitType="chars"
+              from={{ opacity: 0, y: 18 }}
+              to={{ opacity: 1, y: 0 }}
+              textAlign="center"
+            />
+          </div>
+
+          <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-secondary)', marginTop: 4 }}>
+            IoT Two-Wheeler Safety System
+          </p>
+          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
+            Detect. Alert. Respond.
+          </p>
+
+          {/* Value Badges */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              🤖 TinyML Crash AI
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#60a5fa', background: 'rgba(59, 130, 246, 0.1)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+              📡 Auto GSM SOS
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#c084fc', background: 'rgba(168, 85, 247, 0.1)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+              ⚡ BLE Telemetry
+            </span>
+          </div>
         </div>
 
-        {/* Firebase not configured warning */}
-        {!isFirebaseConfigured && (
-          <div className="auth-warning" style={{ marginBottom: 16 }}>
-            <AlertTriangle size={15} style={{ flexShrink: 0 }} />
-            <span>Firebase not configured — update <code>firebaseConfig.ts</code>.</span>
-          </div>
-        )}
+        {/* Elevated Glass Form Card */}
+        <div className="card" style={{ padding: '24px 20px', background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: '20px', boxShadow: 'var(--shadow-lg)' }}>
 
-        <div className="auth-form-section">
+          {/* Mode Switcher Tabs */}
+          <div className="auth-mode-tabs" style={{ marginBottom: 20 }}>
+            <button
+              type="button"
+              className={`auth-mode-tab${mode === 'signin' ? ' active' : ''}`}
+              onClick={() => { setMode('signin'); setError(''); }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              className={`auth-mode-tab${mode === 'signup' ? ' active' : ''}`}
+              onClick={() => { setMode('signup'); setError(''); }}
+            >
+              Create Account
+            </button>
+          </div>
+
+          {/* Firebase Warning if unconfigured */}
+          {!isFirebaseConfigured && (
+            <div className="auth-warning" style={{ marginBottom: 16 }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+              <span>Firebase not configured — update <code>firebaseConfig.ts</code>.</span>
+            </div>
+          )}
+
           {/* Google Sign-In */}
           <button
             id="btn-google-signin"
             className="btn-google"
             onClick={handleGoogleSignIn}
             disabled={loading}
+            style={{ marginBottom: 16 }}
           >
             <GoogleG />
             <span>Continue with Google</span>
           </button>
 
-          <div className="auth-divider"><span>or</span></div>
+          <div className="auth-divider" style={{ marginBottom: 16 }}><span>or email</span></div>
 
-          {/* Email/Password form */}
-          <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Email/Password Form */}
+          <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {mode === 'signup' && (
-              <div className="form-field">
-                <User size={16} className="form-field-icon" />
-                <input
-                  id="auth-name"
-                  className="form-input"
-                  type="text"
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  required
-                />
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Full Name</label>
+                <div className="form-field">
+                  <User size={16} className="form-field-icon" />
+                  <input
+                    id="auth-name"
+                    className="form-input"
+                    type="text"
+                    placeholder="e.g. Alex Rider"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
             )}
 
-            <div className="form-field">
-              <Mail size={16} className="form-field-icon" />
-              <input
-                id="auth-email"
-                className="form-input"
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-              />
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Email Address</label>
+              <div className="form-field">
+                <Mail size={16} className="form-field-icon" />
+                <input
+                  id="auth-email"
+                  className="form-input"
+                  type="email"
+                  placeholder="rider@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
-            <div className="form-field">
-              <Lock size={16} className="form-field-icon" />
-              <input
-                id="auth-password"
-                className="form-input"
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Password</label>
+              <div className="form-field">
+                <Lock size={16} className="form-field-icon" />
+                <input
+                  id="auth-password"
+                  className="form-input"
+                  type="password"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
             </div>
 
             {error && (
@@ -206,33 +282,57 @@ export const AuthScreen: React.FC = () => {
               className="btn btn-primary"
               type="submit"
               disabled={loading}
-              style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-md)', fontSize: '15px', marginTop: 4 }}
+              style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-md)', fontSize: '15px', marginTop: 4, background: 'var(--accent-red)', color: '#ffffff' }}
             >
-              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In to SentryX' : 'Create Free Account'}
             </button>
           </form>
 
-          <p className="auth-toggle">
+          {/* Toggle Sign In / Sign Up */}
+          <p className="auth-toggle" style={{ marginTop: 16 }}>
             {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
             <button
               id="btn-toggle-auth-mode"
               className="auth-toggle-btn"
               onClick={() => { setMode(m => m === 'signin' ? 'signup' : 'signin'); setError(''); }}
+              style={{ fontWeight: 700, color: 'var(--accent-red)' }}
             >
               {mode === 'signin' ? 'Sign Up' : 'Sign In'}
             </button>
           </p>
-
-          <button
-            type="button"
-            className="btn-tour-pill"
-            onClick={() => setShowTour(true)}
-          >
-            What SentryX Does
-          </button>
         </div>
+
+        {/* Feature Highlights Section */}
+        <div className="card" style={{ marginTop: 16, padding: '16px 18px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>App Capabilities</span>
+            <button
+              type="button"
+              onClick={() => setShowTour(true)}
+              style={{ background: 'none', border: 'none', color: 'var(--accent-red)', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer' }}
+            >
+              Learn More <ChevronRight size={14} />
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, textAlign: 'center' }}>
+            <div style={{ padding: '8px 4px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
+              <Cpu size={18} color="var(--accent-red)" style={{ marginBottom: 4 }} />
+              <div style={{ fontSize: '11px', fontWeight: 600 }}>TinyML AI</div>
+            </div>
+            <div style={{ padding: '8px 4px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
+              <Shield size={18} color="var(--accent-blue)" style={{ marginBottom: 4 }} />
+              <div style={{ fontSize: '11px', fontWeight: 600 }}>Auto SOS</div>
+            </div>
+            <div style={{ padding: '8px 4px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
+              <Activity size={18} color="var(--accent-green)" style={{ marginBottom: 4 }} />
+              <div style={{ fontSize: '11px', fontWeight: 600 }}>Telemetry</div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
+      {/* Stepper Tour Modal */}
       {showTour && (
         <div className="stepper-modal-overlay" onClick={() => setShowTour(false)}>
           <div className="stepper-modal-wrapper" onClick={e => e.stopPropagation()}>

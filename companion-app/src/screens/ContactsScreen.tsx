@@ -67,43 +67,56 @@ export const ContactsScreen: React.FC = () => {
 
       {/* Add Contact Form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="card form-card" style={{ margin: '0 16px 16px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: 12 }}>New Contact</h3>
-
-          <div className="form-field">
-            <User size={15} className="form-field-icon" />
-            <input id="contact-name" className="form-input" placeholder="Full Name" value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+        <form onSubmit={handleAdd} className="card" style={{ margin: '0 16px 20px', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Add Emergency Contact</h3>
+            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>SOS Notification Target</span>
           </div>
 
-          <div className="form-field">
-            <Phone size={15} className="form-field-icon" />
-            <input id="contact-phone" className="form-input" placeholder="Phone Number (+91...)" value={form.phone}
-              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required />
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Contact Name</label>
+            <div className="form-field">
+              <User size={16} className="form-field-icon" />
+              <input id="contact-name" className="form-input" placeholder="Full Name (e.g. John Doe)" value={form.name}
+                onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+            </div>
           </div>
 
-          <div className="relation-picker">
-            {RELATIONS.map(r => (
-              <button
-                key={r}
-                type="button"
-                className={`relation-chip${form.relation === r ? ' relation-chip--active' : ''}`}
-                style={{ '--chip-color': relationColor[r] } as React.CSSProperties}
-                onClick={() => setForm(f => ({ ...f, relation: r }))}
-              >
-                {r}
-              </button>
-            ))}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Phone Number (with Country Code)</label>
+            <div className="form-field">
+              <Phone size={16} className="form-field-icon" />
+              <input id="contact-phone" className="form-input" placeholder="+91 98765 43210" value={form.phone}
+                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Relationship</label>
+            <div className="relation-picker">
+              {RELATIONS.map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  className={`relation-chip${form.relation === r ? ' relation-chip--active' : ''}`}
+                  onClick={() => setForm(f => ({ ...f, relation: r }))}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                >
+                  {relationIcon[r]}
+                  <span>{r}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {formError && (
-            <div className="auth-error" style={{ marginBottom: 8 }}>
-              <AlertTriangle size={13} /><span>{formError}</span>
+            <div className="auth-error" style={{ marginBottom: 4 }}>
+              <AlertTriangle size={14} /><span>{formError}</span>
             </div>
           )}
 
-          <button id="btn-save-contact" type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-            Save Contact
+          <button id="btn-save-contact" type="submit" className="btn btn-primary" style={{ width: '100%', padding: '13px', background: 'var(--accent-red)', color: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+            Save Emergency Contact
           </button>
         </form>
       )}

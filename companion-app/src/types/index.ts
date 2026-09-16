@@ -17,6 +17,11 @@ export interface Vehicle {
   engineCC: string;
   color: string;
   licenseFileName: string;
+  licenseFileId?: string;
+  insuranceFileName?: string;
+  insuranceFileId?: string;
+  pucFileName?: string;
+  pucFileId?: string;
   // Service health tracking
   lastServiceKm: number;
   serviceIntervalKm: number;

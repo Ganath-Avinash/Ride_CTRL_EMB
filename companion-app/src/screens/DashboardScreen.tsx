@@ -9,7 +9,29 @@ import { useHardwareSimulator } from '../simulator/useHardwareSimulator';
 import { EmergencyHUD } from '../components/EmergencyHUD';
 import { useApp } from '../context/AppContext';
 import { bleService } from '../services/bleService';
+import SplitText from '../components/SplitText';
+import GradientWaves from '../components/GradientWaves';
+import MorphSlider from '../components/MorphSlider';
 import type { RideLog } from '../types';
+
+const safetyStats = [
+  {
+    image: 'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=1600&auto=format&fit=crop&q=80',
+    caption: '🌍  1.35 million road deaths per year — WHO 2023',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&auto=format&fit=crop&q=80',
+    caption: '🇮🇳  India reports 4.5 lakh accidents annually',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=1600&auto=format&fit=crop&q=80',
+    caption: '⛑️  Helmets reduce fatality risk by 42% — NHTSA',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=1600&auto=format&fit=crop&q=80',
+    caption: '⚡  <10 min response time increases survival by 40%',
+  },
+];
 
 // Fix Leaflet default marker icon in Vite
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -201,7 +223,7 @@ export const DashboardScreen: React.FC = () => {
     : systemState === 'HARD_BRAKING'  ? 'var(--accent-yellow)'
     : 'var(--accent-red)';
 
-  const stateLabel = systemState === 'NORMAL'         ? 'SYSTEM ARMED'
+  const stateLabel = systemState === 'NORMAL'         ? 'SYSTEM ANALYTICS & STATUS'
     : systemState === 'POTHOLE'        ? 'POTHOLE DETECTED'
     : systemState === 'HARD_BRAKING'   ? 'HARD BRAKING'
     : systemState === 'CRASH_PENDING'  ? 'CRASH DETECTED — SOS PENDING'
@@ -221,27 +243,54 @@ export const DashboardScreen: React.FC = () => {
   }
 
   return (
-    <div className="screen">
+    <div className="screen" style={{ position: 'relative', minHeight: '100%' }}>
 
-      {/* ── Header ── */}
-      <header className="screen-header">
-        <div>
-          <h2 className="brand-title">SentryX</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <p className="text-secondary" style={{ fontSize: '13px', margin: 0 }}>
-              Welcome back, {user?.name?.split(' ')[0] ?? 'Rider'}
-            </p>
-            {/* DND / WakeLock pill — shown while riding */}
-            {rideActive && (
-              <span className="dnd-pill">
-                <Moon size={9} />
-                Screen On
-              </span>
-            )}
+      {/* ── Background waves effect ── */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.32, overflow: 'hidden' }}>
+        <GradientWaves
+          horizonColor="#050508"
+          waveColor="#dc2626"
+          crestColor="#7c3aed"
+          speed={0.2}
+          amplitude={1.8}
+          waveScale={0.5}
+          brightness={0.8}
+          opacity={0.6}
+          mouseInteraction={false}
+        />
+      </div>
+
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column' }}>
+
+        {/* ── Header ── */}
+        <header className="screen-header">
+          {/* Left: brand + greeting */}
+          <div className="screen-header-left">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-red)', boxShadow: '0 0 10px rgba(239, 68, 68, 0.8)', flexShrink: 0 }} />
+              <SplitText
+                text="SentryX"
+                className="brand-title"
+                delay={40}
+                duration={0.5}
+                ease="power3.out"
+                splitType="chars"
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <p className="screen-subtitle">
+                {rideActive ? 'Ride in progress' : `Hey, ${user?.name?.split(' ')[0] ?? 'Rider'}`}
+              </p>
+              {rideActive && (
+                <span className="dnd-status-dot">
+                  <Moon size={9} style={{ color: 'var(--accent-purple)', flexShrink: 0 }} />
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {/* Right: timer + actions */}
+        <div className="screen-header-right">
           {/* Ride timer chip */}
           {rideActive && (
             <span className="ride-timer-chip">{formatTimer(rideElapsed)}</span>
@@ -385,12 +434,12 @@ export const DashboardScreen: React.FC = () => {
       </div>
 
       {/* ── Live Map ── */}
-      <div className="card map-widget" style={{ margin: '16px 16px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px 8px' }}>
+      <div className="card" style={{ margin: '16px 16px 0', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px' }}>
           <MapPin size={16} color="var(--accent-blue)" />
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '1px' }}>LIVE LOCATION</span>
         </div>
-        <div style={{ height: 180, borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+        <div style={{ height: 180, overflow: 'hidden' }}>
           <MapContainer
             center={[location.lat, location.lng]}
             zoom={14}
@@ -406,6 +455,33 @@ export const DashboardScreen: React.FC = () => {
               <Popup>Your Location</Popup>
             </Marker>
           </MapContainer>
+        </div>
+      </div>
+
+      {/* ── Road Safety Awareness (MorphSlider) ── */}
+      <div className="card" style={{ margin: '16px 16px 0', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            <Shield size={14} color="var(--accent-red)" />
+            ROAD SAFETY AWARENESS
+          </div>
+          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>Live Realities</span>
+        </div>
+        <div style={{ height: 180, position: 'relative', overflow: 'hidden' }}>
+          <MorphSlider
+            items={safetyStats}
+            transition="melt"
+            intensity={0.4}
+            aberration={0.2}
+            drift={0.25}
+            autoplay
+            autoplayDelay={4}
+            radius={0}
+            overlayColor="#000000"
+            showCaptions
+            showControls={false}
+            showIndicators
+          />
         </div>
       </div>
 
@@ -436,6 +512,7 @@ export const DashboardScreen: React.FC = () => {
             </button>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
