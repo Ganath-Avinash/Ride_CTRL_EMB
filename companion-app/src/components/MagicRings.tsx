@@ -5,25 +5,25 @@ interface MagicRingsProps {
   colorTwo?: string;
   ringCount?: number;
   speed?: number;
-  attenuation?: number;
   lineThickness?: number;
   baseRadius?: number;
   radiusStep?: number;
-  scaleRate?: number;
   opacity?: number;
   blur?: number;
   noiseAmount?: number;
   rotation?: number;
   ringGap?: number;
   fadeIn?: number;
-  fadeOut?: number;
   followMouse?: boolean;
   mouseInfluence?: number;
-  hoverScale?: number;
-  parallax?: number;
-  clickBurst?: boolean;
 }
 
+// Parse hex color once, outside the draw loop
+function parseHex(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
 
 const MagicRings: React.FC<MagicRingsProps> = ({
   color = '#fc42ff',
@@ -57,10 +57,25 @@ const MagicRings: React.FC<MagicRingsProps> = ({
     let fadeOpacity = 0;
     const fadeSpeed = fadeIn > 0 ? 1 / (fadeIn * 60) : 1;
 
+    // Pre-parse colors ONCE — not per frame
+    const c1 = parseHex(color);
+    const c2 = parseHex(colorTwo);
+
+    // Pre-compute per-ring color RGB values
+    const ringColors: [number, number, number][] = [];
+    for (let i = 0; i < ringCount; i++) {
+      const progress = i / Math.max(ringCount - 1, 1);
+      ringColors.push([
+        Math.round(c1[0] + (c2[0] - c1[0]) * progress),
+        Math.round(c1[1] + (c2[1] - c1[1]) * progress),
+        Math.round(c1[2] + (c2[2] - c1[2]) * progress),
+      ]);
+    }
+
     const resize = () => {
       const rect = container.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      canvas.width = Math.floor(rect.width);
+      canvas.height = Math.floor(rect.height);
     };
 
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -75,7 +90,7 @@ const MagicRings: React.FC<MagicRingsProps> = ({
       const cy = h * (followMouse ? lerp(0.5, mouse.current.y, mouseInfluence) : 0.5);
       const minDim = Math.min(w, h);
 
-      ctx.save();
+      // Apply blur once on the entire context, not per-ring
       if (blur > 0) ctx.filter = `blur(${blur}px)`;
 
       for (let i = 0; i < ringCount; i++) {
@@ -83,40 +98,29 @@ const MagicRings: React.FC<MagicRingsProps> = ({
         const radiusFraction = baseRadius + i * radiusStep * ringGap;
         const baseR = minDim * radiusFraction;
 
-        // Noise-like wobble per ring
         const noiseX = Math.sin(t * speed + phase) * noiseAmount * baseR;
         const noiseY = Math.cos(t * speed * 1.3 + phase) * noiseAmount * baseR;
         const rX = baseR + noiseX;
         const rY = baseR + noiseY;
 
+        // Use pre-computed ring colors
+        const [ri, gi, bi] = ringColors[i];
         const progress = i / Math.max(ringCount - 1, 1);
-        // Interpolate between color and colorTwo
-        const r1 = parseInt(color.slice(1, 3), 16);
-        const g1 = parseInt(color.slice(3, 5), 16);
-        const b1 = parseInt(color.slice(5, 7), 16);
-        const r2 = parseInt(colorTwo.slice(1, 3), 16);
-        const g2 = parseInt(colorTwo.slice(3, 5), 16);
-        const b2 = parseInt(colorTwo.slice(5, 7), 16);
-
-        const ri = Math.round(r1 + (r2 - r1) * progress);
-        const gi = Math.round(g1 + (g2 - g1) * progress);
-        const bi = Math.round(b1 + (b2 - b1) * progress);
-
-        // Ring opacity fades outer rings
         const ringAlpha = fadeOpacity * (1 - progress * 0.4);
+        const angle = rotation + t * speed * 0.1 + phase * 0.1;
 
-        // Create gradient stroke around ring
+        // Single-pass: linear gradient with glow baked via lineWidth — no shadowBlur
         const grad = ctx.createLinearGradient(cx - rX, cy, cx + rX, cy);
-        grad.addColorStop(0, `rgba(${ri},${gi},${bi},0)`);
+        grad.addColorStop(0,   `rgba(${ri},${gi},${bi},0)`);
         grad.addColorStop(0.3, `rgba(${ri},${gi},${bi},${ringAlpha})`);
         grad.addColorStop(0.7, `rgba(${ri},${gi},${bi},${ringAlpha})`);
-        grad.addColorStop(1, `rgba(${ri},${gi},${bi},0)`);
+        grad.addColorStop(1,   `rgba(${ri},${gi},${bi},0)`);
 
-        ctx.beginPath();
         ctx.save();
         ctx.translate(cx, cy);
-        ctx.rotate(rotation + t * speed * 0.1 + phase * 0.1);
-        ctx.scale(1, rY / rX); // Ellipse
+        ctx.rotate(angle);
+        ctx.scale(1, rY / rX);
+        ctx.beginPath();
         ctx.arc(0, 0, rX, 0, Math.PI * 2);
         ctx.restore();
 
@@ -124,25 +128,11 @@ const MagicRings: React.FC<MagicRingsProps> = ({
         ctx.lineWidth = lineThickness;
         ctx.globalAlpha = 1;
         ctx.stroke();
-
-        // Add glow layer
-        ctx.beginPath();
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(rotation + t * speed * 0.1 + phase * 0.1);
-        ctx.scale(1, rY / rX);
-        ctx.arc(0, 0, rX, 0, Math.PI * 2);
-        ctx.restore();
-
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = `rgba(${ri},${gi},${bi},${ringAlpha * 0.6})`;
-        ctx.strokeStyle = `rgba(${ri},${gi},${bi},${ringAlpha * 0.3})`;
-        ctx.lineWidth = lineThickness * 3;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        // No second shadowBlur pass — removes the heaviest per-frame cost
       }
 
-      ctx.restore();
+      if (blur > 0) ctx.filter = 'none';
+
       t += 0.016;
       rafRef.current = requestAnimationFrame(draw);
     };
@@ -158,13 +148,33 @@ const MagicRings: React.FC<MagicRingsProps> = ({
     ro.observe(container);
     resize();
 
-    window.addEventListener('mousemove', onMouseMove);
+    // Pause when tab hidden
+    let isPageVisible = !document.hidden;
+    let isPaused = false;
+    const startRaf = () => { if (!isPaused) rafRef.current = requestAnimationFrame(draw); };
+    const onVis = () => {
+      isPageVisible = !document.hidden;
+      if (isPageVisible && isPaused) { isPaused = false; startRaf(); }
+      else if (!isPageVisible && !isPaused) { isPaused = true; cancelAnimationFrame(rafRef.current); }
+    };
+    document.addEventListener('visibilitychange', onVis);
+
+    // Pause via IntersectionObserver
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && isPaused) { isPaused = false; startRaf(); }
+      else if (!e.isIntersecting && !isPaused) { isPaused = true; cancelAnimationFrame(rafRef.current); }
+    }, { threshold: 0 });
+    io.observe(container);
+
+    if (followMouse) window.addEventListener('mousemove', onMouseMove);
     rafRef.current = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
-      window.removeEventListener('mousemove', onMouseMove);
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVis);
+      if (followMouse) window.removeEventListener('mousemove', onMouseMove);
     };
   }, [color, colorTwo, ringCount, speed, lineThickness, baseRadius, radiusStep,
     opacity, blur, noiseAmount, rotation, ringGap, fadeIn, followMouse, mouseInfluence]);

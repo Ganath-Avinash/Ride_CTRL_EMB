@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -40,6 +41,10 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
+
+// Stable SplitText props — module-level prevents re-animation on parent re-renders
+const SPLIT_FROM = { opacity: 0, y: 14 } as const;
+const SPLIT_TO   = { opacity: 1, y: 0  } as const;
 
 // ── Helpers ─────────────────────────────────────────────────
 function formatTimer(s: number): string {
@@ -147,7 +152,7 @@ export const DashboardScreen: React.FC = () => {
   }, [bleStatus]);
 
   // ── BLE connect handler ─────────────────────────────────────
-  const handleBleConnect = async () => {
+  const handleBleConnect = useCallback(async () => {
     if (bleStatus === 'connected') {
       bleService.disconnect();
       setBleStatus('disconnected');
@@ -156,7 +161,7 @@ export const DashboardScreen: React.FC = () => {
     setBleStatus('connecting');
     const res = await bleService.connect();
     setBleStatus(res === 'connected' ? 'connected' : res === 'unsupported' ? 'unsupported' : 'disconnected');
-  };
+  }, [bleStatus, setBleStatus]);
 
   // ── Start ride (acquire WakeLock = DND mode) ────────────────
   const startRide = useCallback(async () => {
@@ -194,41 +199,46 @@ export const DashboardScreen: React.FC = () => {
     setRideStart(null);
   }, [rideStart, telemetry.speed, addRideLog]);
 
-  // ── Safety score ────────────────────────────────────────────
-  const safetyScore = Math.max(0, Math.min(100,
+  // ── Safety score (memoized) ──────────────────────────────────
+  const safetyScore = useMemo(() => Math.max(0, Math.min(100,
     100 - (telemetry.gForce - 1) * 20 - Math.abs(telemetry.roll) * 0.5
-  ));
+  )), [telemetry.gForce, telemetry.roll]);
 
-  // ── Reminder computations ───────────────────────────────────
-  const totalKm = rideLogs.reduce((s, r) => s + r.distanceKm, 0);
-  const kmSinceService = totalKm - (vehicle.lastServiceKm || 0);
-  const kmToService = vehicle.serviceIntervalKm > 0
-    ? vehicle.serviceIntervalKm - kmSinceService
-    : null;
-  const showServiceWarn = kmToService !== null && kmToService <= 200;
+  // ── Reminder computations (memoized) ─────────────────────────
+  const reminders = useMemo(() => {
+    const totalKm = rideLogs.reduce((s, r) => s + r.distanceKm, 0);
+    const kmSinceService = totalKm - (vehicle.lastServiceKm || 0);
+    const kmToService = vehicle.serviceIntervalKm > 0
+      ? vehicle.serviceIntervalKm - kmSinceService
+      : null;
+    const showServiceWarn = kmToService !== null && kmToService <= 200;
+    const insuranceDays = daysUntil(vehicle.insuranceExpiry);
+    const pucDays       = daysUntil(vehicle.pucExpiry);
+    const showInsuranceWarn = insuranceDays !== null && insuranceDays <= 30;
+    const showPucWarn       = pucDays       !== null && pucDays       <= 30;
+    return { kmToService, showServiceWarn, insuranceDays, pucDays, showInsuranceWarn, showPucWarn,
+             hasReminders: showServiceWarn || showInsuranceWarn || showPucWarn };
+  }, [rideLogs, vehicle.lastServiceKm, vehicle.serviceIntervalKm, vehicle.insuranceExpiry, vehicle.pucExpiry]);
 
-  const insuranceDays = daysUntil(vehicle.insuranceExpiry);
-  const pucDays       = daysUntil(vehicle.pucExpiry);
-  const showInsuranceWarn = insuranceDays !== null && insuranceDays <= 30;
-  const showPucWarn       = pucDays       !== null && pucDays       <= 30;
-  const hasReminders = showServiceWarn || showInsuranceWarn || showPucWarn;
+  const { kmToService, showServiceWarn, insuranceDays, pucDays, showInsuranceWarn, showPucWarn, hasReminders } = reminders;
 
-  // ── Derived UI ──────────────────────────────────────────────
+  // ── Derived UI (memoized) ────────────────────────────────────
   const BleIcon = bleStatus === 'connected' ? Bluetooth
     : bleStatus === 'connecting' ? BluetoothSearching
     : BluetoothOff;
 
-  const stateColor = systemState === 'NORMAL' ? 'var(--accent-green)'
-    : systemState === 'POTHOLE'       ? 'var(--accent-orange)'
-    : systemState === 'HARD_BRAKING'  ? 'var(--accent-yellow)'
-    : 'var(--accent-red)';
-
-  const stateLabel = systemState === 'NORMAL'         ? 'SYSTEM ANALYTICS & STATUS'
-    : systemState === 'POTHOLE'        ? 'POTHOLE DETECTED'
-    : systemState === 'HARD_BRAKING'   ? 'HARD BRAKING'
-    : systemState === 'CRASH_PENDING'  ? 'CRASH DETECTED — SOS PENDING'
-    : systemState === 'CRASH_CONFIRMED'? 'CRASH CONFIRMED — ALERTING'
-    : 'SOS SENT';
+  const { stateColor, stateLabel } = useMemo(() => ({
+    stateColor: systemState === 'NORMAL' ? 'var(--accent-green)'
+      : systemState === 'POTHOLE'       ? 'var(--accent-orange)'
+      : systemState === 'HARD_BRAKING'  ? 'var(--accent-yellow)'
+      : 'var(--accent-red)',
+    stateLabel: systemState === 'NORMAL'          ? 'SYSTEM ANALYTICS & STATUS'
+      : systemState === 'POTHOLE'        ? 'POTHOLE DETECTED'
+      : systemState === 'HARD_BRAKING'   ? 'HARD BRAKING'
+      : systemState === 'CRASH_PENDING'  ? 'CRASH DETECTED — SOS PENDING'
+      : systemState === 'CRASH_CONFIRMED'? 'CRASH CONFIRMED — ALERTING'
+      : 'SOS SENT',
+  }), [systemState]);
 
   // ── Emergency overlay ───────────────────────────────────────
   if (isEmergency) {
@@ -246,7 +256,7 @@ export const DashboardScreen: React.FC = () => {
     <div className="screen" style={{ position: 'relative', minHeight: '100%' }}>
 
       {/* ── Background waves effect ── */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.32, overflow: 'hidden' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.32, overflow: 'hidden', willChange: 'auto' }}>
         <GradientWaves
           horizonColor="#050508"
           waveColor="#dc2626"
@@ -256,6 +266,7 @@ export const DashboardScreen: React.FC = () => {
           waveScale={0.5}
           brightness={0.8}
           opacity={0.6}
+          detail="low"
           mouseInteraction={false}
         />
       </div>
@@ -274,6 +285,8 @@ export const DashboardScreen: React.FC = () => {
                 duration={0.5}
                 ease="power3.out"
                 splitType="chars"
+                from={SPLIT_FROM}
+                to={SPLIT_TO}
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

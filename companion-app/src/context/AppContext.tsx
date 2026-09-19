@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import type { AppRoute, AppUser, Vehicle, Contact, RideLog, AppSettings, BleStatus } from '../types';
 import { api } from '../services/api';
 
@@ -307,17 +307,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, [user?.uid]);
 
+  const ctxValue = useMemo(() => ({
+    route, navigate: setRoute,
+    user, setUser,
+    vehicle, setVehicle, uploadVehicleDocument,
+    contacts, addContact, updateContact, removeContact,
+    rideLogs, addRideLog,
+    settings, updateSettings,
+    bleStatus, setBleStatus,
+    syncStatus, refreshFromCloud,
+  }), [
+    route, user, vehicle, contacts, rideLogs, settings, bleStatus, syncStatus,
+    setUser, setVehicle, uploadVehicleDocument,
+    addContact, updateContact, removeContact, addRideLog,
+    updateSettings, setBleStatus, refreshFromCloud,
+  ]);
+
   return (
-    <AppCtx.Provider value={{
-      route, navigate: setRoute,
-      user, setUser,
-      vehicle, setVehicle, uploadVehicleDocument,
-      contacts, addContact, updateContact, removeContact,
-      rideLogs, addRideLog,
-      settings, updateSettings,
-      bleStatus, setBleStatus,
-      syncStatus, refreshFromCloud
-    }}>
+    <AppCtx.Provider value={ctxValue}>
       {children}
     </AppCtx.Provider>
   );

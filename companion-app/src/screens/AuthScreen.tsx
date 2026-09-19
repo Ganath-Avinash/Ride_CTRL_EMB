@@ -18,6 +18,11 @@ import SplitText from '../components/SplitText';
 
 type AuthMode = 'signin' | 'signup';
 
+// Stable SplitText props — module-level prevents re-animation on parent re-renders
+const SPLIT_FROM = { opacity: 0, y: 12 } as const;
+const SPLIT_TO   = { opacity: 1, y: 0  } as const;
+
+
 // Minimal Google G SVG
 const GoogleG = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -148,8 +153,8 @@ export const AuthScreen: React.FC = () => {
                   duration={0.5}
                   ease="power3.out"
                   splitType="chars"
-                  from={{ opacity: 0, y: 12 }}
-                  to={{ opacity: 1, y: 0 }}
+                  from={SPLIT_FROM}
+                  to={SPLIT_TO}
                   textAlign="left"
                 />
               </div>

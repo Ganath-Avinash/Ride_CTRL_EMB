@@ -80,31 +80,8 @@
   }
 }
 
-/* ── Explicit Overrides ──────────────────────────────────── */
-[data-theme="light"] {
-  --bg-primary:   #fafafa;
-  --bg-secondary: #f1f5f9;
-  --bg-tertiary:  #e2e8f0;
-  --bg-elevated:  #ffffff;
-  --bg-overlay:   rgba(250, 250, 250, 0.92);
-  --text-primary:   #0f172a;
-  --text-secondary: #334155;
-  --text-tertiary:  #64748b;
-  --text-invert:    #ffffff;
-  --border:         rgba(15, 23, 42, 0.12);
-  --border-strong:  rgba(15, 23, 42, 0.24);
-  --separator:      rgba(15, 23, 42, 0.08);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 14px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 28px rgba(0,0,0,0.1);
-  --accent-red:    #dc2626;
-  --accent-blue:   #2563eb;
-  --accent-green:  #059669;
-  --accent-orange: #d97706;
-  --accent-yellow: #b45309;
-  --accent-purple: #7c3aed;
-  color-scheme: light;
-}
+/* [data-theme="light"] is intentionally omitted — identical to :root defaults */
+
 
 [data-theme="dark"] {
   --bg-primary:   #09090b;
@@ -220,12 +197,17 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.025em; line-height
   flex-direction: column;
   padding-bottom: 12px;
   animation: screenIn 0.2s ease both;
+  contain: layout style;     /* isolate layout reflows to this subtree */
 }
 
 @keyframes screenIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Lazy-screen spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+
 
 /* ── Cards / Panels ─────────────────────────────────────── */
 .card {
@@ -287,8 +269,9 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.025em; line-height
   flex-shrink: 0;
   height: 68px;
   background: var(--bg-overlay);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  /* Reduced blur for mobile GPU savings */
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
   border-top: 1px solid var(--separator);
   display: flex;
   align-items: center;
@@ -310,6 +293,8 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.025em; line-height
   border-radius: var(--radius-sm);
   transition: color var(--transition-fast);
   flex: 1;
+  touch-action: manipulation;  /* no 300ms tap delay on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 .nav-item:active { opacity: 0.6; }
 .nav-item--active { color: var(--accent-red); }
@@ -353,6 +338,8 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.025em; line-height
   white-space: nowrap;
   text-decoration: none;
   letter-spacing: -0.01em;
+  touch-action: manipulation;  /* eliminate 300ms tap delay */
+  -webkit-tap-highlight-color: transparent;
 }
 .btn:active { transform: scale(0.97); opacity: 0.85; }
 .btn:disabled { opacity: 0.38; pointer-events: none; }
@@ -879,6 +866,7 @@ input:-webkit-autofill:active {
   align-items: center;
   gap: 3px;
   box-shadow: var(--shadow-sm);
+  will-change: contents; /* hint browser for frequent text updates */
 }
 .telem-icon { color: var(--text-tertiary); }
 .telem-value { font-size: 26px; font-weight: 700; letter-spacing: -1.5px; }
